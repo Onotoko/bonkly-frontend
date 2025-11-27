@@ -2,62 +2,93 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '../../services';
 import { useAuthStore } from '../../stores/authStore';
 import { queryKeys } from './keys';
-import type { GoogleCallbackRequest, AppleCallbackRequest, CompleteSignupRequest } from '../../types/api';
+import type {
+    AppleSignInRequest,
+    CompleteSignupRequest,
+    ActivateAccountRequest,
+} from '../../types/api';
 
+/**
+ * Google Login - Redirect based
+ * Returns URL to redirect user to Google OAuth
+ */
 export const useGoogleLogin = () => {
-    const { setAuth, setTempToken } = useAuthStore();
-    const qc = useQueryClient();
-
-    return useMutation({
-        mutationFn: (data: GoogleCallbackRequest) => authService.googleCallback(data),
-        onSuccess: (res) => {
-            if (res.tempToken) {
-                setTempToken(res.tempToken);
-            } else {
-                setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
-                qc.invalidateQueries({ queryKey: queryKeys.user.me() });
-            }
-        },
-    });
+    const handleGoogleLogin = () => {
+        window.location.href = authService.getGoogleAuthUrl();
+    };
+    return { login: handleGoogleLogin };
 };
 
+/**
+ * Apple Sign In
+ */
 export const useAppleLogin = () => {
-    const { setAuth, setTempToken } = useAuthStore();
+    const { setAuth, setTempData } = useAuthStore();
     const qc = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: AppleCallbackRequest) => authService.appleCallback(data),
+        mutationFn: (data: AppleSignInRequest) => authService.appleSignIn(data),
         onSuccess: (res) => {
-            if (res.tempToken) {
-                setTempToken(res.tempToken);
-            } else {
-                setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
+            if (res.needsReferral && res.tempData) {
+                // New user - needs referral code
+                setTempData(res.tempData);
+            } else if (res.user && res.accessToken && res.refreshToken) {
+                // Existing user - logged in
+                setAuth(res.user, res.accessToken, res.refreshToken);
                 qc.invalidateQueries({ queryKey: queryKeys.user.me() });
             }
         },
     });
 };
 
-export const useCompleteSignup = () => {
-    const { setAuth, clearTempToken } = useAuthStore();
-    const qc = useQueryClient();
-
-    return useMutation({
-        mutationFn: (data: CompleteSignupRequest) => authService.completeSignup(data),
-        onSuccess: (res) => {
-            clearTempToken();
-            setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
-            qc.invalidateQueries({ queryKey: queryKeys.user.me() });
-        },
-    });
-};
-
+/**
+ * Validate Referral Code
+ */
 export const useValidateReferral = () => {
     return useMutation({
         mutationFn: (code: string) => authService.validateReferral(code),
     });
 };
 
+/**
+ * Complete Signup with referral code
+ */
+export const useCompleteSignup = () => {
+    const { setAuth, clearTempData } = useAuthStore();
+    const qc = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: CompleteSignupRequest) => authService.completeSignup(data),
+        onSuccess: (res) => {
+            if (res.user && res.accessToken && res.refreshToken) {
+                clearTempData();
+                setAuth(res.user, res.accessToken, res.refreshToken);
+                qc.invalidateQueries({ queryKey: queryKeys.user.me() });
+            }
+        },
+    });
+};
+
+/**
+ * Activate Account with BONK deposit
+ */
+export const useActivateAccount = () => {
+    const { setAuth } = useAuthStore();
+    const qc = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: ActivateAccountRequest) => authService.activate(data),
+        onSuccess: (res) => {
+            setAuth(res.user, res.accessToken, res.refreshToken);
+            qc.invalidateQueries({ queryKey: queryKeys.user.me() });
+            qc.invalidateQueries({ queryKey: queryKeys.wallet.balance() });
+        },
+    });
+};
+
+/**
+ * Logout
+ */
 export const useLogout = () => {
     const { logout } = useAuthStore();
     const qc = useQueryClient();

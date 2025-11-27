@@ -1,15 +1,47 @@
 import { api } from './api';
-import type { PaginatedResponse, FeedParams, CreditPackage, CreditBalance, PurchaseCreditsRequest, CreditHistoryItem } from '../types/api';
+import type {
+    CreditPackage,
+    CreditBalance,
+    PurchaseCreditsRequest,
+    PurchaseCreditsResponse,
+    CreditTransaction,
+    FeedParams,
+} from '../types/api';
 import { buildQuery } from '../utils/query';
 
-
 export const creditService = {
+    /**
+     * GET /credits/packages
+     * Get all available credit packages
+     */
     getPackages: () => api.get<CreditPackage[]>('/credits/packages', false),
 
+    /**
+     * GET /credits/balance
+     * Get current user's credit balance
+     */
     getBalance: () => api.get<CreditBalance>('/credits/balance'),
 
-    purchase: (data: PurchaseCreditsRequest) => api.post<{ success: boolean }>('/credits/purchase', data),
+    /**
+     * POST /credits/purchase
+     * Purchase credits with BONK
+     */
+    purchase: (data: PurchaseCreditsRequest) =>
+        api.post<PurchaseCreditsResponse>('/credits/purchase', data),
 
+    /**
+     * GET /credits/history
+     * Get credit transaction history
+     */
     getHistory: (params?: FeedParams) =>
-        api.get<PaginatedResponse<CreditHistoryItem>>(`/credits/history${buildQuery(params)}`),
+        api.get<{ transactions: CreditTransaction[]; pagination: PaginationMeta }>(
+            `/credits/history${buildQuery(params)}`
+        ),
 };
+
+interface PaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+}

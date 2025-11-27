@@ -2,18 +2,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../../services';
 import { useAuthStore } from '../../stores/authStore';
 import { queryKeys } from './keys';
-import type { UpdateUserRequest } from '../../types/api';
+import type { UpdateProfileRequest } from '../../types/api';
 
-export const useMe = () => {
+/**
+ * Get current user's profile
+ */
+export const useProfile = () => {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     return useQuery({
         queryKey: queryKeys.user.me(),
-        queryFn: () => userService.getMe(),
+        queryFn: () => userService.getProfile(),
         enabled: isAuthenticated,
         staleTime: 5 * 60 * 1000,
     });
 };
 
+/**
+ * Get current user's balances
+ */
+export const useBalances = () => {
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    return useQuery({
+        queryKey: queryKeys.user.balances(),
+        queryFn: () => userService.getBalances(),
+        enabled: isAuthenticated,
+        refetchInterval: 30 * 1000,
+    });
+};
+
+/**
+ * Get public profile by username
+ */
 export const useUserByUsername = (username: string) => {
     return useQuery({
         queryKey: queryKeys.user.byUsername(username),
@@ -22,22 +41,15 @@ export const useUserByUsername = (username: string) => {
     });
 };
 
-export const useUserMemes = (username: string, limit = 20) => {
-    return useQuery({
-        queryKey: queryKeys.user.memes(username),
-        queryFn: () => userService.getUserMemes(username, { limit }),
-        enabled: !!username,
-    });
-};
-
-export const useUpdateMe = () => {
+/**
+ * Update current user's profile
+ */
+export const useUpdateProfile = () => {
     const qc = useQueryClient();
-    const { setUser } = useAuthStore();
     return useMutation({
-        mutationFn: (data: UpdateUserRequest) => userService.updateMe(data),
-        onSuccess: (user) => {
-            setUser(user);
-            qc.setQueryData(queryKeys.user.me(), user);
+        mutationFn: (data: UpdateProfileRequest) => userService.updateProfile(data),
+        onSuccess: (updatedProfile) => {
+            qc.setQueryData(queryKeys.user.me(), updatedProfile);
         },
     });
 };

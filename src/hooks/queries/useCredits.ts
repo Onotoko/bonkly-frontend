@@ -2,8 +2,11 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { creditService } from '../../services';
 import { useAuthStore } from '../../stores/authStore';
 import { queryKeys } from './keys';
-import type { PurchaseCreditsRequest, PaginatedResponse, CreditHistoryItem } from '../../types/api';
+import type { PurchaseCreditsRequest } from '../../types/api';
 
+/**
+ * Get available credit packages
+ */
 export const useCreditPackages = () => {
     return useQuery({
         queryKey: queryKeys.credits.packages(),
@@ -12,6 +15,9 @@ export const useCreditPackages = () => {
     });
 };
 
+/**
+ * Get current user's credit balance
+ */
 export const useCreditBalance = () => {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     return useQuery({
@@ -21,16 +27,27 @@ export const useCreditBalance = () => {
     });
 };
 
+/**
+ * Get credit transaction history
+ */
 export const useCreditHistory = (limit = 20) => {
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     return useInfiniteQuery({
         queryKey: queryKeys.credits.history(),
-        queryFn: ({ pageParam = 1 }) => creditService.getHistory({ page: pageParam, limit }),
+        queryFn: ({ pageParam = 1 }) =>
+            creditService.getHistory({ page: pageParam, limit }),
         initialPageParam: 1,
-        getNextPageParam: (last: PaginatedResponse<CreditHistoryItem>) =>
-            last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
+        getNextPageParam: (last) =>
+            last.pagination.page < last.pagination.totalPages
+                ? last.pagination.page + 1
+                : undefined,
+        enabled: isAuthenticated,
     });
 };
 
+/**
+ * Purchase credits with BONK
+ */
 export const usePurchaseCredits = () => {
     const qc = useQueryClient();
     return useMutation({
@@ -38,6 +55,8 @@ export const usePurchaseCredits = () => {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: queryKeys.credits.balance() });
             qc.invalidateQueries({ queryKey: queryKeys.credits.history() });
+            qc.invalidateQueries({ queryKey: queryKeys.wallet.balance() });
+            qc.invalidateQueries({ queryKey: queryKeys.user.balances() });
         },
     });
 };

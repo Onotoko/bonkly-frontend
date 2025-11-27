@@ -1,15 +1,34 @@
 import { api } from './api';
-import type { User, UpdateUserRequest, Meme, PaginatedResponse, FeedParams } from '../types/api';
-import { buildQuery } from '../utils/query';
-
+import type {
+    UserProfile,
+    UserBalances,
+    UpdateProfileRequest,
+} from '../types/api';
 
 export const userService = {
-    getMe: () => api.get<User>('/users/me'),
+    /**
+     * GET /users/profile
+     * Get current user's profile
+     */
+    getProfile: () => api.get<UserProfile>('/users/profile'),
 
-    updateMe: (data: UpdateUserRequest) => api.put<User>('/users/me', data),
+    /**
+     * PUT /users/profile
+     * Update current user's profile
+     */
+    updateProfile: (data: UpdateProfileRequest) =>
+        api.put<UserProfile>('/users/profile', data),
 
-    getByUsername: (username: string) => api.get<User>(`/users/${username}`, false),
+    /**
+     * GET /users/balances
+     * Get current user's balances
+     */
+    getBalances: () => api.get<UserBalances>('/users/balances'),
 
-    getUserMemes: (username: string, params?: FeedParams) =>
-        api.get<PaginatedResponse<Meme>>(`/users/${username}/memes${buildQuery(params)}`, false),
+    /**
+     * GET /users/:username
+     * Get public profile by username
+     */
+    getByUsername: (username: string) =>
+        api.get<UserProfile>(`/users/${username}`, false),
 };

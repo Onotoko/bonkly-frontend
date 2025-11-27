@@ -1,36 +1,48 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '../types/api';
+import type { User, TempData } from '../types/api';
 
 interface AuthState {
     // State
     user: User | null;
     accessToken: string | null;
     refreshToken: string | null;
-    tempToken: string | null; // For incomplete signup
+    tempData: TempData | null; // For incomplete signup (OAuth data before referral)
     isAuthenticated: boolean;
     isLoading: boolean;
+
+    // Computed
+    isActivated: boolean;
+    needsActivation: boolean;
 
     // Actions
     setAuth: (user: User, accessToken: string, refreshToken: string) => void;
     setUser: (user: User) => void;
     setTokens: (accessToken: string, refreshToken: string) => void;
-    setTempToken: (tempToken: string) => void;
-    clearTempToken: () => void;
+    setTempData: (tempData: TempData) => void;
+    clearTempData: () => void;
     setLoading: (loading: boolean) => void;
     logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             // Initial state
             user: null,
             accessToken: null,
             refreshToken: null,
-            tempToken: null,
+            tempData: null,
             isAuthenticated: false,
             isLoading: true,
+
+            // Computed getters
+            get isActivated() {
+                return get().user?.isActivated ?? false;
+            },
+            get needsActivation() {
+                return get().isAuthenticated && !get().user?.isActivated;
+            },
 
             // Actions
             setAuth: (user, accessToken, refreshToken) =>
@@ -38,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
                     user,
                     accessToken,
                     refreshToken,
-                    tempToken: null,
+                    tempData: null,
                     isAuthenticated: true,
                     isLoading: false,
                 }),
@@ -48,9 +60,9 @@ export const useAuthStore = create<AuthState>()(
             setTokens: (accessToken, refreshToken) =>
                 set({ accessToken, refreshToken }),
 
-            setTempToken: (tempToken) => set({ tempToken }),
+            setTempData: (tempData) => set({ tempData }),
 
-            clearTempToken: () => set({ tempToken: null }),
+            clearTempData: () => set({ tempData: null }),
 
             setLoading: (isLoading) => set({ isLoading }),
 
@@ -59,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
                     user: null,
                     accessToken: null,
                     refreshToken: null,
-                    tempToken: null,
+                    tempData: null,
                     isAuthenticated: false,
                     isLoading: false,
                 }),
@@ -70,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
                 user: state.user,
                 accessToken: state.accessToken,
                 refreshToken: state.refreshToken,
+                tempData: state.tempData,
                 isAuthenticated: state.isAuthenticated,
             }),
         }

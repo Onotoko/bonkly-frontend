@@ -1,5 +1,5 @@
 import { useAuthStore } from '../stores/authStore';
-import type { ApiError } from '../types/api';
+import type { ApiError, UploadResponse } from '../types/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api/v1';
 
@@ -41,7 +41,7 @@ class ApiClient {
                 return false;
             }
 
-            const data = await res.json();
+            const data = await res.json() as { accessToken: string; refreshToken: string };
             setTokens(data.accessToken, data.refreshToken);
             return true;
         } catch {
@@ -51,7 +51,6 @@ class ApiClient {
     }
 
     private async handleUnauthorized(): Promise<boolean> {
-        // Prevent multiple refresh calls
         if (!this.refreshPromise) {
             this.refreshPromise = this.refreshToken().finally(() => {
                 this.refreshPromise = null;
@@ -100,7 +99,7 @@ class ApiClient {
 
         // Handle empty responses
         const text = await res.text();
-        return text ? JSON.parse(text) : ({} as T);
+        return text ? (JSON.parse(text) as T) : ({} as T);
     }
 
     // Convenience methods
@@ -120,12 +119,15 @@ class ApiClient {
         return this.request<T>(endpoint, { method: 'DELETE', auth });
     }
 
-    // File upload with progress
+    /**
+     * File upload with progress
+     * Returns UploadResponse matching Backend UploadResponseDto
+     */
     async upload(
         endpoint: string,
         file: File,
         onProgress?: (percent: number) => void
-    ): Promise<{ url: string; key: string }> {
+    ): Promise<UploadResponse> {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             const formData = new FormData();
@@ -139,9 +141,15 @@ class ApiClient {
 
             xhr.addEventListener('load', () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(JSON.parse(xhr.responseText));
+                    const response = JSON.parse(xhr.responseText) as UploadResponse;
+                    resolve(response);
                 } else {
-                    reject({ statusCode: xhr.status, message: xhr.statusText });
+                    try {
+                        const error = JSON.parse(xhr.responseText) as ApiError;
+                        reject(error);
+                    } catch {
+                        reject({ statusCode: xhr.status, message: xhr.statusText });
+                    }
                 }
             });
 

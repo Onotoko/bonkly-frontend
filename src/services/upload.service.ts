@@ -1,11 +1,17 @@
-
 import { api } from './api';
-import type { UploadResponse } from '../types/api';
 
 export const uploadService = {
-    image: (file: File, onProgress?: (percent: number) => void) =>
-        api.upload('/upload/image', file, onProgress) as Promise<UploadResponse>,
+    /**
+     * POST /upload/media
+     * Upload meme media (image or video)
+     */
+    uploadMedia: (file: File, onProgress?: (percent: number) => void) =>
+        api.upload('/upload/media', file, onProgress),
 
-    video: (file: File, onProgress?: (percent: number) => void) =>
-        api.upload('/upload/video', file, onProgress) as Promise<UploadResponse>,
+    /**
+     * POST /upload/avatar
+     * Upload avatar image
+     */
+    uploadAvatar: (file: File, onProgress?: (percent: number) => void) =>
+        api.upload('/upload/avatar', file, onProgress),
 };

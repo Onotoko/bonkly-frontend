@@ -1,52 +1,44 @@
 import { create } from 'zustand';
-
-interface PowerDownStatus {
-    isActive: boolean;
-    totalDbonk: number;
-    remainingDbonk: number;
-    weeklyPayout: number;
-    currentWeek: number;
-    totalWeeks: number;
-    nextPayoutAt?: string;
-    startedAt?: string;
-}
+import type { WalletBalance, ActivePowerDownResponse } from '../types/api';
 
 interface WalletState {
-    // Balances
-    bonkBalance: number;
-    dbonkBalance: number;
-    pendingRewards: number;
+    // Balances (mirrors WalletBalance from API)
+    bonkWalletBalance: number;
+    bonkRewardPool: number;
+    dBonk: number;
+    availableDBonk: number;
+    powerDownLocked: number;
     laughWeight: number;
-    credits: number;
+    isActivated: boolean;
+    mpcWalletAddress: string | null;
+    mpcWalletSolBalance: number | null;
 
     // Power Down
-    powerDownStatus: PowerDownStatus | null;
+    powerDown: ActivePowerDownResponse | null;
 
     // Loading states
     isLoadingBalance: boolean;
     isLoadingPowerDown: boolean;
 
     // Actions
-    setBalances: (data: {
-        bonkBalance?: number;
-        dbonkBalance?: number;
-        pendingRewards?: number;
-        laughWeight?: number;
-        credits?: number;
-    }) => void;
-    setPowerDownStatus: (status: PowerDownStatus | null) => void;
+    setBalance: (data: WalletBalance) => void;
+    setPowerDown: (data: ActivePowerDownResponse | null) => void;
     setLoadingBalance: (loading: boolean) => void;
     setLoadingPowerDown: (loading: boolean) => void;
     reset: () => void;
 }
 
 const initialState = {
-    bonkBalance: 0,
-    dbonkBalance: 0,
-    pendingRewards: 0,
+    bonkWalletBalance: 0,
+    bonkRewardPool: 0,
+    dBonk: 0,
+    availableDBonk: 0,
+    powerDownLocked: 0,
     laughWeight: 0,
-    credits: 0,
-    powerDownStatus: null,
+    isActivated: false,
+    mpcWalletAddress: null,
+    mpcWalletSolBalance: null,
+    powerDown: null,
     isLoadingBalance: false,
     isLoadingPowerDown: false,
 };
@@ -54,16 +46,20 @@ const initialState = {
 export const useWalletStore = create<WalletState>()((set) => ({
     ...initialState,
 
-    setBalances: (data) =>
-        set((state) => ({
-            bonkBalance: data.bonkBalance ?? state.bonkBalance,
-            dbonkBalance: data.dbonkBalance ?? state.dbonkBalance,
-            pendingRewards: data.pendingRewards ?? state.pendingRewards,
-            laughWeight: data.laughWeight ?? state.laughWeight,
-            credits: data.credits ?? state.credits,
-        })),
+    setBalance: (data) =>
+        set({
+            bonkWalletBalance: data.bonkWalletBalance,
+            bonkRewardPool: data.bonkRewardPool,
+            dBonk: data.dBonk,
+            availableDBonk: data.availableDBonk,
+            powerDownLocked: data.powerDownLocked,
+            laughWeight: data.laughWeight,
+            isActivated: data.isActivated,
+            mpcWalletAddress: data.mpcWalletAddress,
+            mpcWalletSolBalance: data.mpcWalletSolBalance,
+        }),
 
-    setPowerDownStatus: (powerDownStatus) => set({ powerDownStatus }),
+    setPowerDown: (powerDown) => set({ powerDown }),
 
     setLoadingBalance: (isLoadingBalance) => set({ isLoadingBalance }),
 

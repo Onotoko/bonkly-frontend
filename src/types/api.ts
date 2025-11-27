@@ -1,12 +1,14 @@
 // ============ Common ============
+export interface PaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+}
+
 export interface PaginatedResponse<T> {
     data: T[];
-    meta: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-    };
+    meta: PaginationMeta;
 }
 
 export interface ApiError {
@@ -21,279 +23,431 @@ export interface AuthTokens {
     refreshToken: string;
 }
 
-export interface GoogleCallbackRequest {
-    idToken: string;
-    referralCode?: string;
+export interface TempData {
+    googleId?: string;
+    appleId?: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
+    picture?: string;
 }
 
-export interface AppleCallbackRequest {
+export interface AuthResponse {
+    user: User | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    needsReferral?: boolean;
+    needsActivation?: boolean;
+    depositAddress?: string;
+    tempData?: TempData;
+}
+
+export interface CompleteSignupRequest {
+    provider: 'google' | 'apple';
+    providerData: TempData;
+    referralCode: string;
+}
+
+export interface AppleSignInRequest {
     identityToken: string;
-    user?: { email?: string; name?: { firstName?: string; lastName?: string } };
+    user: string;
+    email?: string;
+    fullName?: string;
     referralCode?: string;
 }
 
 export interface ValidateReferralResponse {
     valid: boolean;
-    referrerUsername?: string;
+    referrer?: {
+        username: string;
+        displayName: string;
+    } | null;
 }
 
-export interface CompleteSignupRequest {
-    tempToken: string;
-    username: string;
-    referralCode?: string;
+export interface ActivateAccountRequest {
+    amount: number;
+    txHash: string;
 }
 
-export interface AuthResponse {
+export interface ActivateResponse {
+    message: string;
+    bonkBalance: number;
+    dbonkBalance: number;
     user: User;
-    tokens: AuthTokens;
-    isNewUser?: boolean;
-    tempToken?: string; // For incomplete signup
+    accessToken: string;
+    refreshToken: string;
 }
 
-// ============ User ============
+
 export interface User {
+    _id: string;
+    email: string;
+    username: string;
+    displayName: string;
+    profilePicture?: string;
+    bio?: string;
+    googleId?: string;
+    appleId?: string;
+    solanaAddress?: string;
+    referralCode: string;
+    referredBy?: string;
+    referralCount: number;
+    bonkRewardPool: number;
+    dBonk: number;
+    laughWeight: number;
+    bonkWalletBalance: number;
+    availableDBonk: number;
+    powerDownLocked: number;
+    aiCredits: number;
+    totalLaughsReceived: number;
+    totalLaughsGiven: number;
+    totalMemesCreated: number;
+    isActivated: boolean;
+    isEmailVerified: boolean;
+    lastActive?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UserProfile {
+    username: string;
+    displayName: string;
+    email: string;
+    profilePicture?: string;
+    bio?: string;
+    solanaAddress?: string;
+    referralCode: string;
+    isActivated: boolean;
+}
+
+export interface UserBalances {
+    bonkWalletBalance: number;
+    bonkRewardPool: number;
+    dBonk: number;
+    availableDBonk: number;
+    powerDownLocked: number;
+    laughWeight: number;
+    aiCredits: number;
+    isActivated: boolean;
+    estimatedLaughs: number;
+}
+
+export interface UpdateProfileRequest {
+    displayName?: string;
+    bio?: string;
+    profilePicture?: string;
+}
+
+// Backend: UserSummaryDto (social)
+export interface UserSummary {
     id: string;
     username: string;
-    displayName?: string;
-    bio?: string;
-    avatarUrl?: string;
-    isActivated: boolean;
-    followerCount: number;
+    displayName: string;
+    profilePicture?: string;
+    followersCount: number;
     followingCount: number;
-    memeCount: number;
-    totalLaughs: number;
-    createdAt: string;
+    isFollowing?: boolean;
 }
 
-export interface UpdateUserRequest {
-    displayName?: string;
-    bio?: string;
-    avatarUrl?: string;
-}
-
-// ============ Wallet ============
 export interface WalletBalance {
-    bonk: number;
+    bonkWalletBalance: number;
+    bonkRewardPool: number;
     dBonk: number;
-    pendingRewards: number;
-    withdrawableBonk: number;
-}
-
-export interface ActivateWalletRequest {
-    txSignature: string;
+    availableDBonk: number;
+    powerDownLocked: number;
+    laughWeight: number;
+    isActivated: boolean;
+    mpcWalletAddress: string | null;
+    mpcWalletSolBalance: number | null;
 }
 
 export interface WithdrawRequest {
     amount: number;
+    destinationAddress: string;
 }
 
 export interface WithdrawRequestResponse {
     withdrawalId: string;
     amount: number;
-    solFeeRequired: number;
-    masterWalletAddress: string;
-    expiresAt: string;
+    estimatedFee: number;
+    feePaymentAddress: string;
+    message: string;
 }
 
 export interface WithdrawConfirmRequest {
-    withdrawalId: string;
-    feeTxSignature: string;
+    withdrawalRequestId: string;
+    feePaymentTxHash: string;
+}
+
+export interface WithdrawConfirmResponse {
+    success: boolean;
+    message: string;
+    status: string;
+    bonkTransactionId?: string;
 }
 
 export interface PowerDownStartRequest {
-    amount: number;
+    dbonkAmount: number;
 }
 
 export interface PowerDownStatus {
-    isActive: boolean;
-    totalAmount: number;
-    remainingAmount: number;
-    weeklyPayout: number;
-    weeksRemaining: number;
-    nextPayoutAt?: string;
-    startedAt?: string;
-}
-
-export interface PowerDownHistoryItem {
     id: string;
-    week: number;
-    amount: number;
-    status: 'pending' | 'completed' | 'cancelled';
-    scheduledAt: string;
-    completedAt?: string;
+    userId: string;
+    totalDBonkAmount: number;
+    totalBonkEquivalent: number;
+    weeklyDBonkAmount: number;
+    weeklyBonkAmount: number;
+    weeksCompleted: number;
+    dbonkConverted: number;
+    bonkDistributed: number;
+    startDate: string;
+    nextPayoutDate: string;
+    completionDate?: string;
+    status: string;
+    remainingWeeks: number;
+    estimatedCompletion: string;
 }
 
-export interface Transaction {
-    id: string;
-    type: 'deposit' | 'withdrawal' | 'laugh_sent' | 'laugh_received' | 'reward' | 'power_up' | 'power_down';
-    amount: number;
-    token: 'BONK' | 'dBONK';
-    status: 'pending' | 'completed' | 'failed';
-    description?: string;
-    createdAt: string;
+export interface ActivePowerDownResponse {
+    hasPowerDown: boolean;
+    powerDown?: PowerDownStatus;
+    message?: string;
 }
 
-// ============ Meme ============
+export interface CancelPowerDownResponse {
+    success: boolean;
+    message: string;
+    dbonkReturned: number;
+    bonkReceived: number;
+    weeksCompleted: number;
+}
+
+export interface PowerDownHistoryResponse {
+    powerDowns: PowerDownStatus[];
+    pagination: PaginationMeta;
+}
+
 export interface Meme {
     id: string;
-    creator: UserSummary;
+    lastId: number;
+    creator: {
+        id: string;
+        username: string;
+        displayName: string;
+        profilePicture?: string;
+    };
     mediaUrl: string;
-    mediaType: 'image' | 'video';
     caption?: string;
-    laughCount: number;
+    tags: string[];
+    mediaType: 'image' | 'video' | 'gif';
+    isAIGenerated: boolean;
     loveCount: number;
+    laughCount: number;
     commentCount: number;
-    saveCount: number;
+    shareCount: number;
+    viewCount: number;
+    hasLoved: boolean;
+    hasLaughed: boolean;
+    hasSaved: boolean;
     totalBonkReceived: number;
-    isLoved?: boolean;
-    isLaughed?: boolean;
-    isSaved?: boolean;
     createdAt: string;
-}
-
-export interface UserSummary {
-    id: string;
-    username: string;
-    displayName?: string;
-    avatarUrl?: string;
+    isCurationOpen: boolean;
+    curatorCount: number;
 }
 
 export interface CreateMemeRequest {
     mediaUrl: string;
-    mediaType: 'image' | 'video';
     caption?: string;
+    tags?: string[];
+    mediaType: 'image' | 'video' | 'gif';
+    isAIGenerated?: boolean;
+    aiPrompt?: string;
+    aiModel?: string;
+    visibility?: 'public' | 'private';
 }
 
 export interface LaughRequest {
-    amount: number;
+    sliderPercentage: number; // 0-100, default 100
 }
 
 export interface LaughResponse {
     success: boolean;
-    newBalance: number;
-    memeNewTotal: number;
+    laughId: string;
+    bonkSpent: number;
+    distribution: {
+        creator: number;
+        curators: number;
+        platform: number;
+    };
+    creatorSplit: {
+        claimable: number;
+        powerUp: number;
+        powerUpDBonk: number;
+    };
+    isCurator: boolean;
+    curatorPosition?: number;
+    remainingBonkPool: number;
+    newLaughWeight: number;
+    estimatedRemainingLaughs: number;
 }
 
-// ============ Comment ============
+export interface MemeListResponse {
+    memes: Meme[];
+    pagination: PaginationMeta;
+}
+
+
 export interface Comment {
     id: string;
+    user: {
+        id: string;
+        username: string;
+        displayName: string;
+        profilePicture?: string;
+    };
     memeId: string;
-    author: UserSummary;
     content: string;
+    parentCommentId?: string;
     likeCount: number;
     replyCount: number;
-    parentId?: string;
-    isLiked?: boolean;
+    hasLiked: boolean;
+    isOwner: boolean;
     createdAt: string;
 }
 
 export interface CreateCommentRequest {
     content: string;
-    parentId?: string;
+    parentCommentId?: string;
 }
 
-// ============ Rewards ============
+export interface CommentListResponse {
+    comments: Comment[];
+    pagination: PaginationMeta;
+}
+
+
 export interface PendingRewards {
+    totalPending: number;
     creatorRewards: number;
     curatorRewards: number;
-    referralRewards: number;
-    total: number;
+    walletBalance: number;
+    bonkPower: number;
+    rewardPool: number;
+    laughWeight: number;
 }
 
 export interface ClaimRewardsResponse {
-    claimed: number;
-    newBalance: number;
+    success: boolean;
+    totalClaimed: number;
+    claimableBonk: number;
+    powerUpBonk: number;
+    powerUpDBonk: number;
+    newDBonkBalance: number;
+    newLaughWeight: number;
+    rewardsClaimed: {
+        creator: number;
+        curator: number;
+    };
 }
 
-export interface RewardHistoryItem {
-    id: string;
-    type: 'creator' | 'curator' | 'referral';
-    amount: number;
-    sourceId?: string;
-    description: string;
-    createdAt: string;
-}
-
-// ============ Social ============
 export interface FollowResponse {
+    success: boolean;
     following: boolean;
-    followerCount: number;
+    followersCount: number;
+    followingCount: number;
 }
 
-// ============ Credits ============
+export interface IsFollowingResponse {
+    isFollowing: boolean;
+}
+
+export interface FollowListResponse {
+    users: UserSummary[];
+    pagination: PaginationMeta;
+}
+
 export interface CreditPackage {
     id: string;
     name: string;
     credits: number;
-    priceUsd: number;
-    bonusCredits: number;
+    bonkPrice: number;
+    isActive: boolean;
 }
 
 export interface CreditBalance {
     credits: number;
+    bonkWalletBalance: number;
 }
 
 export interface PurchaseCreditsRequest {
     packageId: string;
-    paymentMethod: string;
 }
 
-export interface CreditHistoryItem {
+export interface PurchaseCreditsResponse {
+    success: boolean;
+    credits: number;
+    bonkSpent: number;
+    newBalance: number;
+    transaction: CreditTransaction;
+}
+
+export interface CreditTransaction {
     id: string;
-    type: 'purchase' | 'usage' | 'bonus';
-    amount: number;
-    description: string;
+    type: string;
+    credits: number;
+    bonkAmount: number;
+    packageId?: string;
+    description?: string;
+    balanceAfter: number;
     createdAt: string;
-}
-
-// ============ Referral ============
-export interface ReferralCode {
-    code: string;
-    url: string;
 }
 
 export interface ReferralStats {
+    referralCode: string;
     totalReferrals: number;
     activeReferrals: number;
-    totalEarned: number;
-    pendingRewards: number;
+    pendingReferrals: number;
+    referralList: {
+        username: string;
+        joinedAt: string;
+        isActivated: boolean;
+    }[];
 }
 
-// ============ Upload ============
 export interface UploadResponse {
-    url: string;
-    key: string;
+    success: boolean;
+    mediaUrl: string;
+    mediaType: 'image' | 'video';
+    size: number;
 }
-
-// ============ Feed Params ============
-export interface FeedParams {
-    page?: number;
-    limit?: number;
-}
-
-export interface UserMemesParams extends FeedParams {
-    username: string;
-}
-
-// ============ AI Generation ============
-export type AIMediaType = 'image' | 'video' | 'gif';
-export type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export interface GenerateAIRequest {
     prompt: string;
-    mediaType: AIMediaType;
-    duration?: number;
+    mediaType: 'image' | 'video' | 'gif';
+    duration?: number; // 5-60 for video
 }
 
 export interface GenerationResult {
+    success: boolean;
+    url: string;
+    mediaType: string;
+    creditsUsed: number;
+    creditsRemaining: number;
+    generationId: string;
+    metadata?: Record<string, unknown>;
+}
+
+export interface GenerationStatus {
     id: string;
-    status: GenerationStatus;
-    mediaType: AIMediaType;
-    prompt: string;
-    mediaUrl?: string;
-    thumbnailUrl?: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    url?: string;
     error?: string;
-    creditsCost: number;
     createdAt: string;
     completedAt?: string;
+}
+
+export interface FeedParams {
+    page?: number;
+    limit?: number;
 }

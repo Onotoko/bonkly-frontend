@@ -1,47 +1,109 @@
 import { api } from './api';
 import type {
     WalletBalance,
-    ActivateWalletRequest,
     WithdrawRequest,
     WithdrawRequestResponse,
     WithdrawConfirmRequest,
+    WithdrawConfirmResponse,
     PowerDownStartRequest,
     PowerDownStatus,
-    PowerDownHistoryItem,
-    Transaction,
-    PaginatedResponse,
+    ActivePowerDownResponse,
+    CancelPowerDownResponse,
+    PowerDownHistoryResponse,
     FeedParams,
 } from '../types/api';
 import { buildQuery } from '../utils/query';
 
-
 export const walletService = {
-    activate: (data: ActivateWalletRequest) =>
-        api.post<{ activated: boolean }>('/wallet/activate', data),
-
+    /**
+     * GET /wallet/balance
+     */
     getBalance: () => api.get<WalletBalance>('/wallet/balance'),
 
-    // Withdrawal flow
+    /**
+     * GET /wallet/transactions
+     */
+    getTransactions: (params?: FeedParams) =>
+        api.get<{ transactions: Transaction[]; pagination: PaginationMeta }>(
+            `/wallet/transactions${buildQuery(params)}`
+        ),
+
+    // ============ Withdrawal Flow ============
+
+    /**
+     * POST /wallet/withdraw/request
+     */
     requestWithdraw: (data: WithdrawRequest) =>
         api.post<WithdrawRequestResponse>('/wallet/withdraw/request', data),
 
+    /**
+     * POST /wallet/withdraw/confirm
+     */
     confirmWithdraw: (data: WithdrawConfirmRequest) =>
-        api.post<{ success: boolean; txSignature: string }>('/wallet/withdraw/confirm', data),
+        api.post<WithdrawConfirmResponse>('/wallet/withdraw/confirm', data),
 
-    // Power down
+    /**
+     * DELETE /wallet/withdraw/cancel/:requestId
+     */
+    cancelWithdraw: (requestId: string) =>
+        api.delete<{ success: boolean; message: string; refundedAmount: number }>(
+            `/wallet/withdraw/cancel/${requestId}`
+        ),
+
+    /**
+     * GET /wallet/withdraw/request/:requestId
+     */
+    getWithdrawRequest: (requestId: string) =>
+        api.get<WithdrawRequestResponse>(`/wallet/withdraw/request/${requestId}`),
+
+    /**
+     * GET /wallet/withdraw/requests
+     */
+    getWithdrawRequests: (params?: FeedParams) =>
+        api.get<{ requests: WithdrawRequestResponse[]; pagination: PaginationMeta }>(
+            `/wallet/withdraw/requests${buildQuery(params)}`
+        ),
+
+    // ============ Power Down ============
+
+    /**
+     * POST /wallet/power-down/start
+     */
     startPowerDown: (data: PowerDownStartRequest) =>
         api.post<PowerDownStatus>('/wallet/power-down/start', data),
 
+    /**
+     * DELETE /wallet/power-down/cancel
+     */
     cancelPowerDown: () =>
-        api.post<{ cancelled: boolean }>('/wallet/power-down/cancel'),
+        api.delete<CancelPowerDownResponse>('/wallet/power-down/cancel'),
 
+    /**
+     * GET /wallet/power-down/active
+     */
     getPowerDownStatus: () =>
-        api.get<PowerDownStatus>('/wallet/power-down/status'),
+        api.get<ActivePowerDownResponse>('/wallet/power-down/active'),
 
+    /**
+     * GET /wallet/power-down/history
+     */
     getPowerDownHistory: (params?: FeedParams) =>
-        api.get<PaginatedResponse<PowerDownHistoryItem>>(`/wallet/power-down/history${buildQuery(params)}`),
-
-    // Transactions
-    getTransactions: (params?: FeedParams) =>
-        api.get<PaginatedResponse<Transaction>>(`/wallet/transactions${buildQuery(params)}`),
+        api.get<PowerDownHistoryResponse>(`/wallet/power-down/history${buildQuery(params)}`),
 };
+
+// Local types for transactions (inferred from backend)
+interface Transaction {
+    id: string;
+    type: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+    description?: string;
+}
+
+interface PaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+}

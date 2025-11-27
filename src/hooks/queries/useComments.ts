@@ -1,30 +1,44 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentService } from '../../services';
 import { queryKeys } from './keys';
-import type { CreateCommentRequest, PaginatedResponse, Comment } from '../../types/api';
+import type { CreateCommentRequest, CommentListResponse } from '../../types/api';
 
+const getNextPage = (lastPage: CommentListResponse) =>
+    lastPage.pagination.page < lastPage.pagination.totalPages
+        ? lastPage.pagination.page + 1
+        : undefined;
+
+/**
+ * Get comments for meme
+ */
 export const useComments = (memeId: string, limit = 20) => {
     return useInfiniteQuery({
         queryKey: queryKeys.comments.byMeme(memeId),
-        queryFn: ({ pageParam = 1 }) => commentService.getByMeme(memeId, { page: pageParam, limit }),
+        queryFn: ({ pageParam = 1 }) =>
+            commentService.getByMeme(memeId, { page: pageParam, limit }),
         initialPageParam: 1,
-        getNextPageParam: (last: PaginatedResponse<Comment>) =>
-            last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
+        getNextPageParam: getNextPage,
         enabled: !!memeId,
     });
 };
 
+/**
+ * Get replies for comment
+ */
 export const useReplies = (commentId: string, limit = 20) => {
     return useInfiniteQuery({
         queryKey: queryKeys.comments.replies(commentId),
-        queryFn: ({ pageParam = 1 }) => commentService.getReplies(commentId, { page: pageParam, limit }),
+        queryFn: ({ pageParam = 1 }) =>
+            commentService.getReplies(commentId, { page: pageParam, limit }),
         initialPageParam: 1,
-        getNextPageParam: (last: PaginatedResponse<Comment>) =>
-            last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
+        getNextPageParam: getNextPage,
         enabled: !!commentId,
     });
 };
 
+/**
+ * Create comment
+ */
 export const useCreateComment = () => {
     const qc = useQueryClient();
     return useMutation({
@@ -32,41 +46,39 @@ export const useCreateComment = () => {
             commentService.create(memeId, data),
         onSuccess: (_, { memeId, data }) => {
             qc.invalidateQueries({ queryKey: queryKeys.comments.byMeme(memeId) });
-            if (data.parentId) {
-                qc.invalidateQueries({ queryKey: queryKeys.comments.replies(data.parentId) });
+            if (data.parentCommentId) {
+                qc.invalidateQueries({ queryKey: queryKeys.comments.replies(data.parentCommentId) });
             }
             qc.invalidateQueries({ queryKey: queryKeys.memes.detail(memeId) });
         },
     });
 };
 
+/**
+ * Delete comment
+ */
 export const useDeleteComment = () => {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id }: { id: string; _memeId: string }) => commentService.delete(id),
-        onSuccess: (_, { _memeId }) => {
-            qc.invalidateQueries({ queryKey: queryKeys.comments.byMeme(_memeId) });
-            qc.invalidateQueries({ queryKey: queryKeys.memes.detail(_memeId) });
+        mutationFn: ({ commentId }: { commentId: string; memeId: string }) =>
+            commentService.delete(commentId),
+        onSuccess: (_, { memeId }) => {
+            qc.invalidateQueries({ queryKey: queryKeys.comments.byMeme(memeId) });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.detail(memeId) });
         },
     });
 };
 
-export const useLikeComment = () => {
+/**
+ * Toggle like on comment
+ */
+export const useToggleLikeComment = () => {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id }: { id: string; _memeId: string }) => commentService.like(id),
-        onSuccess: (_, { _memeId }) => {
-            qc.invalidateQueries({ queryKey: queryKeys.comments.byMeme(_memeId) });
-        },
-    });
-};
-
-export const useUnlikeComment = () => {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id }: { id: string; _memeId: string }) => commentService.unlike(id),
-        onSuccess: (_, { _memeId }) => {
-            qc.invalidateQueries({ queryKey: queryKeys.comments.byMeme(_memeId) });
+        mutationFn: ({ commentId }: { commentId: string; memeId: string }) =>
+            commentService.toggleLike(commentId),
+        onSuccess: (_, { memeId }) => {
+            qc.invalidateQueries({ queryKey: queryKeys.comments.byMeme(memeId) });
         },
     });
 };

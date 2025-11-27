@@ -1,21 +1,51 @@
 import { api } from './api';
-import type { Comment, CreateCommentRequest, PaginatedResponse, FeedParams } from '../types/api';
+import type {
+    Comment,
+    CreateCommentRequest,
+    CommentListResponse,
+    FeedParams,
+} from '../types/api';
 import { buildQuery } from '../utils/query';
 
-
 export const commentService = {
+    /**
+     * POST /memes/:memeId/comments
+     * Create comment on meme
+     */
     create: (memeId: string, data: CreateCommentRequest) =>
         api.post<Comment>(`/memes/${memeId}/comments`, data),
 
+    /**
+     * GET /memes/:memeId/comments
+     * Get comments for meme (public)
+     */
     getByMeme: (memeId: string, params?: FeedParams) =>
-        api.get<PaginatedResponse<Comment>>(`/memes/${memeId}/comments${buildQuery(params)}`, false),
+        api.get<CommentListResponse>(
+            `/memes/${memeId}/comments${buildQuery(params)}`,
+            false
+        ),
 
-    delete: (id: string) => api.delete<void>(`/comments/${id}`),
+    /**
+     * GET /comments/:commentId/replies
+     * Get replies for comment (public)
+     */
+    getReplies: (commentId: string, params?: FeedParams) =>
+        api.get<CommentListResponse>(
+            `/comments/${commentId}/replies${buildQuery(params)}`,
+            false
+        ),
 
-    like: (id: string) => api.post<{ liked: boolean; likeCount: number }>(`/comments/${id}/like`),
+    /**
+     * DELETE /comments/:commentId
+     * Delete comment (owner only)
+     */
+    delete: (commentId: string) =>
+        api.delete<{ message: string }>(`/comments/${commentId}`),
 
-    unlike: (id: string) => api.delete<{ liked: boolean; likeCount: number }>(`/comments/${id}/like`),
-
-    getReplies: (id: string, params?: FeedParams) =>
-        api.get<PaginatedResponse<Comment>>(`/comments/${id}/replies${buildQuery(params)}`, false),
+    /**
+     * POST /comments/:commentId/like
+     * Toggle like on comment
+     */
+    toggleLike: (commentId: string) =>
+        api.post<{ liked: boolean; likeCount: number }>(`/comments/${commentId}/like`),
 };

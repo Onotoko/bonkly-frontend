@@ -3,6 +3,7 @@ export const queryKeys = {
     user: {
         all: ['user'] as const,
         me: () => [...queryKeys.user.all, 'me'] as const,
+        balances: () => [...queryKeys.user.all, 'balances'] as const,
         byUsername: (username: string) => [...queryKeys.user.all, 'profile', username] as const,
         memes: (username: string) => [...queryKeys.user.all, 'memes', username] as const,
     },
@@ -21,9 +22,10 @@ export const queryKeys = {
     wallet: {
         all: ['wallet'] as const,
         balance: () => [...queryKeys.wallet.all, 'balance'] as const,
+        transactions: () => [...queryKeys.wallet.all, 'transactions'] as const,
+        withdrawRequests: () => [...queryKeys.wallet.all, 'withdraw', 'requests'] as const,
         powerDownStatus: () => [...queryKeys.wallet.all, 'power-down', 'status'] as const,
         powerDownHistory: () => [...queryKeys.wallet.all, 'power-down', 'history'] as const,
-        transactions: () => [...queryKeys.wallet.all, 'transactions'] as const,
     },
 
     // Social
@@ -45,7 +47,6 @@ export const queryKeys = {
     rewards: {
         all: ['rewards'] as const,
         pending: () => [...queryKeys.rewards.all, 'pending'] as const,
-        history: () => [...queryKeys.rewards.all, 'history'] as const,
     },
 
     // Credits
@@ -59,8 +60,9 @@ export const queryKeys = {
     // Referrals
     referrals: {
         all: ['referrals'] as const,
-        code: () => [...queryKeys.referrals.all, 'code'] as const,
         stats: () => [...queryKeys.referrals.all, 'stats'] as const,
+        validate: (code: string) => [...queryKeys.referrals.all, 'validate', code] as const,
+        leaderboard: () => [...queryKeys.referrals.all, 'leaderboard'] as const,
     },
 
     // AI
