@@ -1,0 +1,637 @@
+/* ============================================
+   AUTH PAGES STYLES
+   Welcome, Referral, Activate, Success
+   ============================================ */
+
+/* ============================================
+   WELCOME PAGE
+   ============================================ */
+
+.welcome-screen {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    background: #FE0405;
+}
+
+.welcome-sky {
+    position: absolute;
+    inset: 0;
+    background-position: center top;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.welcome-logo {
+    position: absolute;
+    left: 50%;
+    top: 27%;
+    transform: translate(-50%, -50%);
+    width: 220px;
+    max-width: 72vw;
+    height: auto;
+    filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.18));
+}
+
+.welcome-panel {
+    position: relative;
+    z-index: 3;
+    padding: 48vh 20px 32px;
+    display: grid;
+    align-items: center;
+    gap: 83px;
+    text-align: center;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.welcome-hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.welcome-hero-title {
+    margin: 0;
+    text-align: center;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 1.5px #f8f654;
+    paint-order: stroke fill;
+}
+
+.welcome-hero-subtitle {
+    margin: 0;
+    max-width: 420px;
+    color: #f8f8f8;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.welcome-cta-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    width: 100%;
+}
+
+.welcome-cta-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-btn {
+    width: 100%;
+    padding: 20px 18px;
+    border: none;
+    border-radius: 999px;
+    font-size: 18px;
+    font-weight: 800;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    box-shadow: 0 6px 0 rgba(150, 0, 0, 0.4);
+}
+
+.welcome-btn:active {
+    transform: translateY(1px);
+}
+
+.welcome-btn-google {
+    background: #EBF000;
+    color: #e30000;
+}
+
+.welcome-btn-apple {
+    background: none;
+    color: #f6ff5a;
+    border: 2px solid #f6ff5a;
+    box-shadow: none;
+}
+
+.welcome-terms {
+    max-width: 360px;
+    margin: 0 auto;
+    color: #ffeaea;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.welcome-terms a {
+    color: #e0d400;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.welcome-terms a:hover {
+    text-decoration: underline;
+}
+
+@media (min-width: 540px) {
+    .welcome-screen {
+        max-width: 430px;
+        margin: 0 auto;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+    }
+}
+
+/* ============================================
+   ONBOARDING PAGES - Shared Layout
+   Referral, Activate, Success
+   ============================================ */
+
+.onboarding-shell {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: #e8edf2;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.onboarding-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Hero section - title + artwork */
+.onboarding-hero {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 10;
+}
+
+.onboarding-header {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 24px 4px;
+}
+
+.dot-row {
+    display: flex;
+    gap: 6px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #eac1c1;
+    transition: transform 120ms ease, background 120ms ease;
+}
+
+.dot.active {
+    background: #e20000;
+    transform: translateY(-1px);
+}
+
+.slide-title {
+    margin: 0;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    line-height: 1.15;
+    color: #e20000;
+    text-align: center;
+}
+
+/* Artwork wrapper */
+.onboarding-artwork-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1 / 1;
+    margin: 10px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.artwork-confetti {
+    position: absolute;
+    inset: -20%;
+    width: 140%;
+    height: 140%;
+    object-fit: contain;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.artwork-ornament {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.artwork-icon {
+    position: relative;
+    z-index: 3;
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+}
+
+.artwork-icon-large {
+    width: 160px;
+    height: 160px;
+}
+
+/* Content area with rectangle background */
+.onboarding-content {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+}
+
+.onboarding-rectangle-bg {
+    position: absolute;
+    top: -60px;
+    left: 0;
+    width: 100%;
+    height: calc(100% + 60px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.onboarding-inner {
+    position: relative;
+    z-index: 5;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+    gap: 16px;
+}
+
+@media (min-width: 540px) {
+    .onboarding-shell {
+        max-width: 430px;
+        margin: 0 auto;
+    }
+}
+
+/* ============================================
+   SLIDE CONTENT STYLES
+   ============================================ */
+
+.slide-subhead {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #22272E;
+    line-height: 25px;
+    text-align: center;
+}
+
+.slide-helper {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: #555;
+    text-align: center;
+}
+
+.slide-body-highlight {
+    margin: 16px 0 0;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: #FE0405;
+    line-height: 31px;
+    text-align: center;
+}
+
+.slide-error {
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: #FE0405;
+    text-align: center;
+    margin: 0;
+}
+
+/* ============================================
+   CODE INPUT - Referral Page
+   ============================================ */
+
+.code-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.code-stack {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    cursor: text;
+}
+
+.code-entry {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.code-box {
+    height: 40px;
+    border-bottom: 3px solid #8a8a8a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Inter", sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1f1f1f;
+    transition: border-color 0.2s ease;
+}
+
+.code-box.error {
+    border-bottom-color: #FE0405;
+    animation: shake 0.3s ease-in-out;
+}
+
+.code-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: text;
+}
+
+.code-hint {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: #8a8a8a;
+}
+
+/* ============================================
+   NOTE CARD - Activate Page
+   ============================================ */
+
+.note-card {
+    width: 100%;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.note-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #43BC00;
+    text-align: left;
+}
+
+.note-card li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.note-card .bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #43BC00;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   INPUT CHIPS - Activate Page
+   ============================================ */
+
+.input-row {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px 14px;
+    box-shadow: inset 0 0 0 1px #d9d9d9;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #3a3a3a;
+}
+
+.chip-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.chip-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chip-placeholder {
+    flex: 1;
+    color: #a0a0a0;
+    text-align: left;
+}
+
+.chip-action {
+    background: none;
+    border: none;
+    color: #e20000;
+    font-weight: 800;
+    font-size: 12px;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 0;
+}
+
+.chip-action:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   CTA BUTTONS
+   ============================================ */
+
+.cta-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: auto;
+    padding: 20px 0;
+}
+
+.btn {
+    width: 100%;
+    padding: 20px 18px;
+    border: none;
+    border-radius: 999px;
+    font-size: 18px;
+    font-weight: 800;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cta-primary {
+    background: #fe0405;
+    color: #fff;
+    box-shadow: 0 6px 0 rgba(180, 0, 0, 0.35);
+}
+
+.cta-primary:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.35);
+}
+
+.cta-back {
+    width: 100%;
+    padding: 20px 18px;
+    background: none;
+    border: 2px solid #D3D8E0;
+    border-radius: 999px;
+    color: #666C75;
+    font-weight: 800;
+    font-size: 16px;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    box-shadow: 0 6px 0 rgba(150, 150, 150, 0.1);
+}
+
+.cta-back:active {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 rgba(150, 150, 150, 0.1);
+}
+
+/* ============================================
+   HELPER TEXT
+   ============================================ */
+
+.link-row {
+    margin: 4px 0;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: #575757;
+    text-align: center;
+}
+
+.link-row a {
+    color: #e20000;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.link-row a:hover {
+    text-decoration: underline;
+}
+
+.fine-print {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    color: #575757;
+    text-align: center;
+}
+
+/* ============================================
+   SPINNER & ANIMATIONS
+   ============================================ */
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

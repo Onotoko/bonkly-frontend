@@ -1,34 +1,99 @@
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/constants/routes';
+
+// Assets
+import onboardingBgSrc from '@/assets/images/onboarding-background.png';
+import ornamentSrc from '@/assets/images/ornament-referral.png';
+import bgConfettiSrc from '@/assets/images/bg-confetti.png';
+import rectangleSrc from '@/assets/images/rectangle-referral.svg';
+import laughSrc from '@/assets/illustrations/laugh.png';
+
 export function ActivateSuccessPage() {
+    const navigate = useNavigate();
+
+    const handleStartLaughing = () => {
+        navigate(ROUTES.HOME);
+    };
+
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <div className="w-full max-w-sm space-y-8 text-center">
-                {/* Success Icon */}
-                <div className="text-6xl">🎉</div>
+        <div className="onboarding-shell">
+            {/* Background */}
+            <img
+                src={onboardingBgSrc}
+                alt=""
+                className="onboarding-bg"
+                aria-hidden="true"
+            />
 
-                {/* Hero */}
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-heading font-bold text-gray-900">
-                        You did it, Meme Overlord
-                    </h1>
-                    <p className="text-gray-600">
-                        Your BONK has landed, your Laughs are loaded, and your meme wallet
-                        is live.
-                    </p>
+            {/* Hero section */}
+            <div className="onboarding-hero">
+                {/* Header dots */}
+                <header className="onboarding-header">
+                    <div className="dot-row">
+                        <span className="dot"></span>
+                        <span className="dot"></span>
+                        <span className="dot active"></span>
+                    </div>
+                </header>
+
+                {/* Title */}
+                <h1 className="slide-title">
+                    You did it, Meme Overlord
+                </h1>
+
+                {/* Artwork */}
+                <div className="onboarding-artwork-wrapper">
+                    <img
+                        src={bgConfettiSrc}
+                        alt=""
+                        className="artwork-confetti"
+                        aria-hidden="true"
+                    />
+                    <img
+                        src={ornamentSrc}
+                        alt=""
+                        className="artwork-ornament"
+                        aria-hidden="true"
+                    />
+                    <img
+                        src={laughSrc}
+                        alt="Laughing emoji"
+                        className="artwork-icon artwork-icon-large"
+                    />
                 </div>
+            </div>
 
-                {/* Info */}
-                <p className="text-sm text-gray-500">
-                    You can now post, Love, and Laugh your way to fame (and BONK).
-                </p>
+            {/* Content area with rectangle background */}
+            <div className="onboarding-content">
+                {/* Rectangle background with wave top */}
+                <img
+                    src={rectangleSrc}
+                    alt=""
+                    className="onboarding-rectangle-bg"
+                    aria-hidden="true"
+                />
 
-                {/* CTA */}
-                <button className="w-full h-12 bg-secondary text-white font-semibold rounded-full">
-                    Start Laughing →
-                </button>
+                <div className="onboarding-inner">
+                    <p className="slide-subhead">
+                        Your BONK has landed, your Laughs are loaded, and your meme wallet is live.
+                    </p>
 
-                <p className="text-sm text-gray-400">
-                    Post your first meme and make the internet lose it.
-                </p>
+                    <p className="slide-body-highlight">
+                        You can now post, Love, and Laugh your way to fame (and BONK).
+                    </p>
+
+                    <div className="cta-row">
+                        <button
+                            className="btn cta-primary"
+                            onClick={handleStartLaughing}
+                        >
+                            Start Laughing →
+                        </button>
+                        <p className="fine-print">
+                            Post your first meme and make the internet lose it.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -1,109 +1,221 @@
+/* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-@import "tailwindcss";
 
-/* Custom Theme */
-@theme {
-    /* Primary Colors */
-    --color-primary-red: #FF0000;
-    --color-primary-red-dark: #8B0000;
-    --color-primary-red-light: #FF6B6B;
-    --color-primary-yellow: #FFFF00;
-    --color-primary-yellow-dark: #B8B800;
 
-    /* Secondary Colors */
-    --color-secondary-orange: #FF6600;
-    --color-secondary-green: #4CAF50;
-    --color-secondary-green-dark: #2E7D32;
-    --color-secondary-blue: #7C3AED;
+/* Import design tokens */
+@import './tokens.css';
 
-    /* Neutral Colors */
-    --color-neutral-black: #22272E;
-    --color-neutral-gray-900: #1F2937;
-    --color-neutral-gray-700: #374151;
-    --color-neutral-gray-500: #6B7280;
-    --color-neutral-gray-400: #9CA3AF;
-    --color-neutral-gray-300: #D1D5DB;
-    --color-neutral-gray-200: #E5E7EB;
-    --color-neutral-gray-100: #F3F4F6;
-    --color-neutral-white: #FFFFFF;
+/* Feature styles */
+@import './auth.css';
+@import './main.css';
 
-    /* Semantic Colors */
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-error: #EF4444;
-    --color-bonk: #F7931A;
+/* Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-    /* Font Families */
-    --font-heading: 'Bricolage Grotesque', sans-serif;
-    --font-body: 'Inter', sans-serif;
+/* ============ Base Styles ============ */
+@layer base {
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-    /* Font Sizes */
-    --text-xs: 0.75rem;
-    --text-sm: 0.875rem;
-    --text-base: 1rem;
-    --text-lg: 1.125rem;
-    --text-xl: 1.25rem;
-    --text-2xl: 1.5rem;
-    --text-3xl: 2rem;
+    html {
+        font-family: var(--font-body);
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
-    /* Border Radius */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-full: 9999px;
+    body {
+        background-color: var(--color-white);
+        color: var(--color-gray-900);
+        line-height: var(--leading-normal);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    /* Heading font */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .font-heading {
+        font-family: var(--font-heading);
+    }
+
+    /* Links */
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    /* Images */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Buttons reset */
+    button {
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        background: none;
+    }
+
+    /* Input reset */
+    input,
+    textarea {
+        font-family: inherit;
+        font-size: inherit;
+    }
 }
 
-/* Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ============ Component Styles ============ */
+@layer components {
+
+    /* Auth page container */
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Auth hero section (top with ornament) */
+    .auth-hero {
+        position: relative;
+        background: linear-gradient(180deg, #FDFD96 0%, #F8FD01 100%);
+        padding-top: env(safe-area-inset-top);
+        overflow: hidden;
+    }
+
+    /* Auth content section (red bottom) */
+    .auth-content {
+        flex: 1;
+        background-color: var(--color-primary);
+        padding: var(--spacing-6);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Welcome heading style */
+    .welcome-heading {
+        font-family: var(--font-heading);
+        font-weight: var(--font-extrabold);
+        font-size: 28px;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        color: var(--color-secondary);
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    /* Auth description text */
+    .auth-description {
+        font-family: var(--font-body);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
+        line-height: 1.5;
+        color: var(--color-white);
+        text-align: center;
+    }
+
+    /* Auth button - filled (Google) */
+    .auth-btn-filled {
+        width: 100%;
+        height: 62px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-3);
+        background-color: var(--color-secondary);
+        color: var(--color-primary);
+        font-family: var(--font-body);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
+        border-radius: var(--radius-3xl);
+        transition: all var(--transition-normal);
+    }
+
+    .auth-btn-filled:hover {
+        background-color: var(--color-secondary-dark);
+        transform: translateY(-2px);
+    }
+
+    .auth-btn-filled:active {
+        transform: translateY(0);
+    }
+
+    /* Auth button - outline (Apple) */
+    .auth-btn-outline {
+        width: 100%;
+        height: 62px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-3);
+        background-color: transparent;
+        color: var(--color-secondary);
+        font-family: var(--font-body);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
+        border: 2px solid var(--color-secondary-light);
+        border-radius: var(--radius-3xl);
+        transition: all var(--transition-normal);
+    }
+
+    .auth-btn-outline:hover {
+        background-color: var(--color-secondary);
+        color: var(--color-primary);
+    }
+
+    /* Terms text */
+    .auth-terms {
+        font-family: var(--font-body);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-xs);
+        line-height: 1.5;
+        color: var(--color-secondary);
+        text-align: center;
+    }
+
+    .auth-terms a {
+        text-decoration: underline;
+    }
 }
 
-html {
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+/* ============ Utility Classes ============ */
+@layer utilities {
+
+    /* Hide scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Text shadow */
+    .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Tap highlight */
+    .tap-highlight-none {
+        -webkit-tap-highlight-color: transparent;
+    }
 }
 
-body {
-    background-color: var(--color-neutral-gray-100);
-    color: var(--color-neutral-black);
-    min-height: 100vh;
-    min-height: 100dvh;
-}
-
-/* Utility Classes */
-.font-heading {
-    font-family: var(--font-heading);
-}
-
-.font-body {
-    font-family: var(--font-body);
-}
-
-/* Safe Area for Mobile */
-.safe-top {
-    padding-top: env(safe-area-inset-top);
-}
-
-.safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* Hide scrollbar but keep functionality */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+.wave-divider {
+    position: relative;
+    margin-top: -1px;
+    z-index: 10;
+    line-height: 0;
 }

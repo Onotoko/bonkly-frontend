@@ -1,46 +1,167 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/constants/routes';
+
+// Assets
+import onboardingBgSrc from '@/assets/images/onboarding-background.png';
+import ornamentSrc from '@/assets/images/ornament-referral.png';
+import bgConfettiSrc from '@/assets/images/bg-confetti.png';
+import rectangleSrc from '@/assets/images/rectangle-referral.svg';
+import ufoSrc from '@/assets/illustrations/ufo.png';
+import iconWalletSrc from '@/assets/icons/icon-wallet.svg';
+import iconMemoSrc from '@/assets/icons/icon-memo.svg';
+
 export function ActivatePage() {
+    const navigate = useNavigate();
+    const [copiedField, setCopiedField] = useState<'wallet' | 'memo' | null>(null);
+
+    const walletAddress = '12903jklsadjksadhasdy78293893242';
+    const memoCode = '{{unique}}';
+
+    const handleCopy = async (text: string, field: 'wallet' | 'memo') => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedField(field);
+            setTimeout(() => setCopiedField(null), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    const handleProceed = () => {
+        navigate(ROUTES.ACTIVATE_SUCCESS);
+    };
+
+    const handleBack = () => {
+        navigate(-1);
+    };
+
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <div className="w-full max-w-sm space-y-8">
-                {/* Hero */}
-                <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-heading font-bold text-gray-900">
-                        It's time to put your BONK where your meme is
-                    </h1>
-                    <p className="text-gray-600">
+        <div className="onboarding-shell">
+            {/* Background */}
+            <img
+                src={onboardingBgSrc}
+                alt=""
+                className="onboarding-bg"
+                aria-hidden="true"
+            />
+
+            {/* Hero section */}
+            <div className="onboarding-hero">
+                {/* Header dots */}
+                <header className="onboarding-header">
+                    <div className="dot-row">
+                        <span className="dot"></span>
+                        <span className="dot active"></span>
+                        <span className="dot"></span>
+                    </div>
+                </header>
+
+                {/* Title */}
+                <h1 className="slide-title">
+                    It's time to put your BONK where your meme is
+                </h1>
+
+                {/* Artwork */}
+                <div className="onboarding-artwork-wrapper">
+                    <img
+                        src={bgConfettiSrc}
+                        alt=""
+                        className="artwork-confetti"
+                        aria-hidden="true"
+                    />
+                    <img
+                        src={ornamentSrc}
+                        alt=""
+                        className="artwork-ornament"
+                        aria-hidden="true"
+                    />
+                    <img
+                        src={ufoSrc}
+                        alt="UFO"
+                        className="artwork-icon"
+                    />
+                </div>
+            </div>
+
+            {/* Content area with rectangle background */}
+            <div className="onboarding-content">
+                {/* Rectangle background with wave top */}
+                <img
+                    src={rectangleSrc}
+                    alt=""
+                    className="onboarding-rectangle-bg"
+                    aria-hidden="true"
+                />
+
+                <div className="onboarding-inner">
+                    <p className="slide-subhead">
                         Deposit 40K BONK to unlock posting rights.
                     </p>
-                </div>
 
-                {/* Info */}
-                <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl">💪</span>
-                        <span className="text-sm">80% becomes your Super Vote ammo</span>
+                    <div className="note-card">
+                        <ul>
+                            <li>
+                                <span className="bullet"></span>
+                                80% becomes your Super Vote ammo
+                            </li>
+                            <li>
+                                <span className="bullet"></span>
+                                20% keeps the meme servers running
+                            </li>
+                        </ul>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl">⚙️</span>
-                        <span className="text-sm">20% keeps the meme servers running</span>
-                    </div>
-                </div>
 
-                {/* Wallet Address */}
-                <div className="space-y-2">
-                    <p className="text-sm text-gray-500 text-center">
-                        Send BONK to this address:
+                    <div className="input-row">
+                        <div className="input-chip">
+                            <img
+                                src={iconWalletSrc}
+                                alt=""
+                                className="chip-icon"
+                            />
+                            <span className="chip-text">{walletAddress}</span>
+                            <button
+                                className="chip-action"
+                                onClick={() => handleCopy(walletAddress, 'wallet')}
+                            >
+                                {copiedField === 'wallet' ? 'Copied!' : 'Copy Address'}
+                            </button>
+                        </div>
+                        <div className="input-chip">
+                            <img
+                                src={iconMemoSrc}
+                                alt=""
+                                className="chip-icon"
+                            />
+                            <span className="chip-placeholder">{memoCode}</span>
+                            <button
+                                className="chip-action"
+                                onClick={() => handleCopy(memoCode, 'memo')}
+                            >
+                                {copiedField === 'memo' ? 'Copied!' : 'Copy Memo'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <p className="fine-print">
+                        Make sure to add the memo or your deposit will be lost
                     </p>
-                    <div className="bg-gray-100 rounded-xl p-3 flex items-center gap-2">
-                        <code className="flex-1 text-xs truncate">
-                            12903jklsadjksadhasdy7829389324214sdsdf
-                        </code>
-                        <button className="text-primary text-sm font-medium">Copy</button>
+
+                    <div className="cta-row">
+                        <button
+                            className="btn cta-primary"
+                            onClick={handleProceed}
+                        >
+                            I've Bonked → Proceed
+                        </button>
+                        <button
+                            className="btn cta-back"
+                            onClick={handleBack}
+                        >
+                            Back
+                        </button>
                     </div>
                 </div>
-
-                {/* Proceed Button */}
-                <button className="w-full h-12 bg-primary text-white font-semibold rounded-full">
-                    I've Bonked → Proceed
-                </button>
             </div>
         </div>
     );

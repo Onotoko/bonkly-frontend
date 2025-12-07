@@ -1,32 +1,68 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Home, Wallet, User } from 'lucide-react';
 
 const navItems = [
-    { path: '/home', label: 'Home', icon: Home },
-    { path: '/wallet', label: 'Earn', icon: Wallet },
-    { path: '/profile', label: 'Profile', icon: User },
+    { path: '/home', label: 'Home', icon: 'home' },
+    { path: '/wallet', label: 'Earn', icon: 'earn' },
+    { path: '/profile', label: 'Profile', icon: 'profile' },
 ];
+
+function IconHome({ active }: { active: boolean }) {
+    const color = active ? '#FE0405' : '#939AA2';
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+                d="M10.9834 0.269531C11.954 0.246771 12.9614 0.475846 13.7871 0.99707L13.9502 1.10547L20.1289 5.43457L20.3564 5.60742C20.8766 6.0339 21.3159 6.6206 21.6357 7.2334C22.0012 7.9337 22.25 8.743 22.25 9.5V16.7803C22.2498 19.5031 20.0253 21.7402 17.29 21.7402H5.71C2.9737 21.7402 0.750298 19.5021 0.75 16.7705V9.36035C0.75 8.65005 0.974102 7.88086 1.3037 7.20898C1.6335 6.53678 2.1055 5.88672 2.6689 5.44824L8.0596 1.24805C8.8842 0.606681 9.9481 0.293861 10.9834 0.269531ZM11.0186 1.76855C10.2416 1.78675 9.5057 2.02405 8.9805 2.43262L3.5908 6.63184C3.2546 6.89344 2.9104 7.33906 2.6504 7.86914C2.3903 8.39936 2.25 8.94092 2.25 9.36035V16.7705C2.2503 18.6783 3.8067 20.2402 5.71 20.2402H17.29C19.1945 20.2402 20.7498 18.677 20.75 16.7803V9.5C20.75 9.0473 20.5934 8.47617 20.3066 7.92676C20.0198 7.37727 19.6415 6.92305 19.2715 6.66504L19.2695 6.66406L13.0898 2.33398C12.5439 1.95198 11.7955 1.75035 11.0186 1.76855ZM11.5 13.2402C11.9142 13.2402 12.25 13.576 12.25 13.9902V16.9902C12.2498 17.4043 11.9141 17.7402 11.5 17.7402C11.0859 17.7402 10.7502 17.4043 10.75 16.9902V13.9902C10.75 13.576 11.0858 13.2402 11.5 13.2402Z"
+                fill={color}
+            />
+        </svg>
+    );
+}
+
+function IconEarn({ active }: { active: boolean }) {
+    const color = active ? '#FE0405' : '#939AA2';
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+                d="M12 0.25C14.574 0.25 16.5708 0.760264 17.9053 2.09473C19.2397 3.42919 19.75 5.42601 19.75 8V14C19.75 16.574 19.2397 18.5708 17.9053 19.9053C16.5708 21.2397 14.574 21.75 12 21.75H6C3.42601 21.75 1.42919 21.2397 0.0947266 19.9053C-1.23974 18.5708 -1.75 16.574 -1.75 14V8C-1.75 5.42601 -1.23974 3.42919 0.0947266 2.09473C1.42919 0.760264 3.42601 0.25 6 0.25H12ZM6 1.75C3.57399 1.75 2.07081 2.23974 1.15527 3.15527C0.239736 4.07081 -0.25 5.57399 -0.25 8V14C-0.25 16.426 0.239736 17.9292 1.15527 18.8447C2.07081 19.7603 3.57399 20.25 6 20.25H12C14.426 20.25 15.9292 19.7603 16.8447 18.8447C17.7603 17.9292 18.25 16.426 18.25 14V8C18.25 5.57399 17.7603 4.07081 16.8447 3.15527C15.9292 2.23974 14.426 1.75 12 1.75H6ZM9 4.25C9.41421 4.25 9.75 4.58579 9.75 5V5.58984H10.1221C11.8001 5.59004 13.0918 7.00061 13.0918 8.66992C13.0918 9.08414 12.756 9.41992 12.3418 9.41992C11.9276 9.41992 11.5918 9.08414 11.5918 8.66992C11.5918 7.75941 10.9038 7.09004 10.1221 7.08984H9.75V10.4639L11.2676 10.9912L11.2725 10.9932C11.7216 11.1523 12.2086 11.3907 12.5684 11.8496C12.9351 12.3174 13.0918 12.9126 13.0918 13.6299C13.0918 15.1316 11.9179 16.4099 10.4023 16.4102H9.75V17C9.75 17.4142 9.41421 17.75 9 17.75C8.58579 17.75 8.25 17.4142 8.25 17V16.4102H7.8916C6.2136 16.41 4.92197 14.9993 4.92188 13.3301C4.92188 12.9159 5.25766 12.5801 5.67188 12.5801C6.08609 12.5801 6.42188 12.9159 6.42188 13.3301C6.42197 14.2404 7.10996 14.91 7.8916 14.9102H8.25V11.5303L6.74609 11.0088L6.74121 11.0068C6.29217 10.8477 5.80502 10.6092 5.44531 10.1504C5.07869 9.68262 4.92188 9.08734 4.92188 8.37012C4.92188 6.86823 6.09653 5.58984 7.6123 5.58984H8.25V5C8.25 4.58579 8.58579 4.25 9 4.25ZM9.75 14.9102H10.4023C11.0263 14.9099 11.5918 14.3678 11.5918 13.6299C11.5918 13.1274 11.4835 12.8976 11.3877 12.7754C11.285 12.6444 11.1122 12.528 10.7715 12.4072V12.4062L9.75 12.0508V14.9102ZM7.6123 7.08984C6.98814 7.08984 6.42188 7.63198 6.42188 8.37012C6.42188 8.87262 6.53019 9.10243 6.62598 9.22461C6.72869 9.35557 6.90149 9.47198 7.24219 9.59277H7.24121L8.25 9.94238V7.08984H7.6123Z"
+                fill={color}
+                transform="translate(3, 1)"
+            />
+        </svg>
+    );
+}
+
+function IconProfile({ active }: { active: boolean }) {
+    const color = active ? '#FE0405' : '#939AA2';
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke={color} strokeWidth="1.5" fill="none" />
+            <path
+                d="M4 20C4 16.6863 7.58172 14 12 14C16.4183 14 20 16.6863 20 20"
+                stroke={color}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="none"
+            />
+        </svg>
+    );
+}
 
 export default function MainLayout() {
     const location = useLocation();
 
-    // Hide bottom nav on certain pages (e.g., create meme full screen)
     const hideNavPaths = ['/create', '/meme/'];
     const shouldHideNav = hideNavPaths.some((p) => location.pathname.startsWith(p));
 
     return (
-        <div className="flex min-h-screen flex-col bg-[#FAF9F6]">
-            {/* Main content area */}
+        <div className="min-h-screen min-h-dvh flex flex-col bg-[#FAF9F6]">
             <main className={`flex-1 ${shouldHideNav ? '' : 'pb-20'}`}>
                 <Outlet />
             </main>
 
-            {/* Bottom Navigation */}
             {!shouldHideNav && (
-                <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white">
-                    {/* Safe area padding for iOS */}
-                    <div className="flex h-16 items-center justify-around px-6 pb-safe">
-                        {navItems.map(({ path, label, icon: Icon }) => {
+                <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100">
+                    <div className="flex items-center justify-around h-16 px-6 pb-safe max-w-[430px] mx-auto">
+                        {navItems.map(({ path, label, icon }) => {
                             const isActive = location.pathname === path ||
                                 (path === '/home' && location.pathname === '/');
 
@@ -36,18 +72,12 @@ export default function MainLayout() {
                                     to={path}
                                     className="flex flex-col items-center justify-center gap-1"
                                 >
-                                    <div
-                                        className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${isActive
-                                                ? 'bg-[#E53935] text-white'
-                                                : 'text-gray-400 hover:text-gray-600'
-                                            }`}
-                                    >
-                                        <Icon className="h-5 w-5" strokeWidth={2} />
+                                    <div className="flex items-center justify-center w-6 h-6">
+                                        {icon === 'home' && <IconHome active={isActive} />}
+                                        {icon === 'earn' && <IconEarn active={isActive} />}
+                                        {icon === 'profile' && <IconProfile active={isActive} />}
                                     </div>
-                                    <span
-                                        className={`text-xs font-medium ${isActive ? 'text-[#E53935]' : 'text-gray-400'
-                                            }`}
-                                    >
+                                    <span className={`text-xs font-medium ${isActive ? 'text-[#FE0405]' : 'text-[#939AA2]'}`}>
                                         {label}
                                     </span>
                                 </NavLink>
