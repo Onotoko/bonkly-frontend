@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Navigate, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/stores';
+import { useCheckDeposit } from '@/hooks/queries';
 import { ROUTES } from '@/constants/routes';
 
 // Assets
@@ -11,12 +13,97 @@ import ufoSrc from '@/assets/illustrations/ufo.png';
 import iconWalletSrc from '@/assets/icons/icon-wallet.svg';
 import iconMemoSrc from '@/assets/icons/icon-memo.svg';
 
+interface ActivateData {
+    userId: string;
+    email: string;
+    solanaAddress: string;
+}
+
+const MIN_DEPOSIT = 40000;
+const POLL_INTERVAL = 10000; // 10 seconds
+
 export function ActivatePage() {
     const navigate = useNavigate();
-    const [copiedField, setCopiedField] = useState<'wallet' | 'memo' | null>(null);
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const { user } = useAuthStore();
 
-    const walletAddress = '12903jklsadjksadhasdy78293893242';
-    const memoCode = '{{unique}}';
+    const [copiedField, setCopiedField] = useState<'wallet' | 'memo' | null>(null);
+    const [checkError, setCheckError] = useState<string | null>(null);
+
+    // Deposit checking with polling
+    const {
+        isPolling,
+        isChecking,
+        data: checkResult,
+        startPolling,
+        stopPolling,
+        checkOnce,
+    } = useCheckDeposit({
+        pollingInterval: POLL_INTERVAL,
+        onActivated: (result) => {
+            navigate(ROUTES.ACTIVATE_SUCCESS, {
+                state: {
+                    bonkBalance: result.bonkRewardPool,
+                    dbonkBalance: result.dBonk,
+                    amount: result.amount,
+                },
+                replace: true,
+            });
+        },
+        onError: (error) => {
+            setCheckError(error.message || 'Failed to check deposit');
+        },
+    });
+
+    // Get deposit address from: location state > URL params > user store
+    const activateData = useMemo<ActivateData | null>(() => {
+        // From location state (after signup)
+        const stateAddress = location.state?.depositAddress;
+        if (stateAddress && user) {
+            return {
+                userId: user._id,
+                email: user.email,
+                solanaAddress: stateAddress,
+            };
+        }
+
+        // From URL params (redirect from backend)
+        const dataParam = searchParams.get('data');
+        if (dataParam) {
+            try {
+                const decoded = atob(dataParam);
+                return JSON.parse(decoded) as ActivateData;
+            } catch (e) {
+                console.error('Failed to parse activate data:', e);
+            }
+        }
+
+        // From user store
+        if (user?.solanaAddress) {
+            return {
+                userId: user._id,
+                email: user.email,
+                solanaAddress: user.solanaAddress,
+            };
+        }
+
+        return null;
+    }, [location.state, searchParams, user]);
+
+    // Cleanup polling on unmount
+    useEffect(() => {
+        return () => {
+            stopPolling();
+        };
+    }, [stopPolling]);
+
+    if (!activateData) {
+        return <Navigate to={ROUTES.WELCOME} replace />;
+    }
+
+    const walletAddress = activateData.solanaAddress;
+    const memoCode = activateData.userId;
 
     const handleCopy = async (text: string, field: 'wallet' | 'memo') => {
         try {
@@ -28,12 +115,20 @@ export function ActivatePage() {
         }
     };
 
-    const handleProceed = () => {
-        navigate(ROUTES.ACTIVATE_SUCCESS);
+    const handleCheckDeposit = () => {
+        setCheckError(null);
+        if (isPolling) {
+            // Already polling, just do a manual check
+            checkOnce();
+        } else {
+            // Start polling
+            startPolling();
+        }
     };
 
     const handleBack = () => {
-        navigate(-1);
+        stopPolling();
+        navigate(ROUTES.WELCOME);
     };
 
     return (
@@ -96,7 +191,7 @@ export function ActivatePage() {
 
                 <div className="onboarding-inner">
                     <p className="slide-subhead">
-                        Deposit 40K BONK to unlock posting rights.
+                        Deposit {MIN_DEPOSIT.toLocaleString()}+ BONK to unlock posting rights.
                     </p>
 
                     <div className="note-card">
@@ -147,12 +242,35 @@ export function ActivatePage() {
                         Make sure to add the memo or your deposit will be lost
                     </p>
 
+                    {/* Status messages */}
+                    {isPolling && !checkResult?.found && (
+                        <div className="status-card status-polling">
+                            <span className="spinner spinner-small" />
+                            <span>Watching for your deposit...</span>
+                        </div>
+                    )}
+
+                    {checkResult?.found === false && checkResult?.message && !isPolling && (
+                        <p className="slide-info">{checkResult.message}</p>
+                    )}
+
+                    {checkError && (
+                        <p className="slide-error">{checkError}</p>
+                    )}
+
                     <div className="cta-row">
                         <button
                             className="btn cta-primary"
-                            onClick={handleProceed}
+                            onClick={handleCheckDeposit}
+                            disabled={isChecking}
                         >
-                            I've Bonked → Proceed
+                            {isChecking ? (
+                                <span className="spinner" />
+                            ) : isPolling ? (
+                                'Checking...'
+                            ) : (
+                                "I've Bonked → Check Deposit"
+                            )}
                         </button>
                         <button
                             className="btn cta-back"

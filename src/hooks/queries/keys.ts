@@ -22,10 +22,12 @@ export const queryKeys = {
     wallet: {
         all: ['wallet'] as const,
         balance: () => [...queryKeys.wallet.all, 'balance'] as const,
-        transactions: () => [...queryKeys.wallet.all, 'transactions'] as const,
         withdrawRequests: () => [...queryKeys.wallet.all, 'withdraw', 'requests'] as const,
         powerDownStatus: () => [...queryKeys.wallet.all, 'power-down', 'status'] as const,
         powerDownHistory: () => [...queryKeys.wallet.all, 'power-down', 'history'] as const,
+        checkDeposit: () => [...queryKeys.wallet.all, 'check-deposit'] as const,
+        transactions: (page?: number) => [...queryKeys.wallet.all, 'transactions', page] as const,
+
     },
 
     // Social

@@ -98,3 +98,7 @@ export {
     useGenerateAI,
     useAIStatus,
 } from './useAI';
+
+export {
+    useCheckDeposit
+} from './useCheckDeposit'

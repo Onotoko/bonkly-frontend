@@ -451,3 +451,14 @@ export interface FeedParams {
     page?: number;
     limit?: number;
 }
+
+export interface CheckDepositResponse {
+    found: boolean;
+    activated?: boolean;
+    amount?: number;
+    txHash?: string;
+    bonkRewardPool?: number;
+    dBonk?: number;
+    laughWeight?: number;
+    message?: string;
+}

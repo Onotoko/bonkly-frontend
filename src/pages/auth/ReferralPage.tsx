@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useValidateReferral } from '@/hooks/queries';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useValidateReferral, useCompleteSignup } from '@/hooks/queries';
+import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/constants/routes';
+import type { TempData } from '@/types/api';
 
 // Assets
 import onboardingBgSrc from '@/assets/images/onboarding-background.png';
@@ -14,13 +16,44 @@ const CODE_LENGTH = 6;
 
 export function ReferralPage() {
     const navigate = useNavigate();
-    const { mutate: validateReferral, isPending } = useValidateReferral();
+    const [searchParams] = useSearchParams();
+    const { tempData, setTempData } = useAuthStore();
+    const { mutate: validateReferral, isPending: isValidating } = useValidateReferral();
+    const { mutate: completeSignup, isPending: isSigningUp } = useCompleteSignup();
 
     const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
     const [error, setError] = useState('');
+    const [referrerName, setReferrerName] = useState<string | null>(null);
     const hiddenInputRef = useRef<HTMLInputElement>(null);
 
     const fullCode = code.join('');
+    const isPending = isValidating || isSigningUp;
+
+    // Parse tempData from URL if present
+    useEffect(() => {
+        const dataParam = searchParams.get('data');
+        if (dataParam && !tempData) {
+            try {
+                const decoded = atob(dataParam);
+                const parsed = JSON.parse(decoded) as TempData;
+                setTempData(parsed);
+            } catch (e) {
+                console.error('Failed to parse tempData from URL:', e);
+                navigate(ROUTES.WELCOME, {
+                    state: { error: 'Invalid session. Please try again.' },
+                    replace: true
+                });
+            }
+        }
+    }, [searchParams, tempData, setTempData, navigate]);
+
+    // Redirect if no tempData
+    useEffect(() => {
+        const dataParam = searchParams.get('data');
+        if (!tempData && !dataParam) {
+            navigate(ROUTES.WELCOME, { replace: true });
+        }
+    }, [tempData, searchParams, navigate]);
 
     const handleCodeStackClick = () => {
         hiddenInputRef.current?.focus();
@@ -34,6 +67,7 @@ export function ReferralPage() {
         }
         setCode(newCode);
         setError('');
+        setReferrerName(null);
     };
 
     const handleSubmit = () => {
@@ -42,9 +76,42 @@ export function ReferralPage() {
             return;
         }
 
+        if (!tempData) {
+            setError('Session expired. Please start over.');
+            return;
+        }
+
+        // Step 1: Validate referral code
         validateReferral(fullCode, {
-            onSuccess: () => {
-                navigate(ROUTES.SIGNUP);
+            onSuccess: (response) => {
+                if (!response.valid) {
+                    setError('Invalid referral code');
+                    return;
+                }
+
+                setReferrerName(response.referrer?.displayName || response.referrer?.username || null);
+
+                // Step 2: Complete signup
+                const provider = tempData.googleId ? 'google' : 'apple';
+                completeSignup(
+                    {
+                        provider,
+                        providerData: tempData,
+                        referralCode: fullCode,
+                    },
+                    {
+                        onSuccess: (authResponse) => {
+                            // useCompleteSignup already handles setAuth
+                            navigate(ROUTES.ACTIVATE, {
+                                state: { depositAddress: authResponse.depositAddress },
+                                replace: true
+                            });
+                        },
+                        onError: (err) => {
+                            setError(err.message || 'Signup failed. Please try again.');
+                        },
+                    }
+                );
             },
             onError: (err) => {
                 setError(err.message || 'Invalid referral code');
@@ -152,6 +219,9 @@ export function ReferralPage() {
                     </div>
 
                     {error && <p className="slide-error">{error}</p>}
+                    {referrerName && !error && (
+                        <p className="slide-success">Referred by {referrerName}</p>
+                    )}
 
                     <div className="cta-row">
                         <button

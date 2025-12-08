@@ -11,6 +11,7 @@ import type {
     CancelPowerDownResponse,
     PowerDownHistoryResponse,
     FeedParams,
+    CheckDepositResponse,
 } from '../types/api';
 import { buildQuery } from '../utils/query';
 
@@ -89,7 +90,15 @@ export const walletService = {
      */
     getPowerDownHistory: (params?: FeedParams) =>
         api.get<PowerDownHistoryResponse>(`/wallet/power-down/history${buildQuery(params)}`),
+
+    /**
+     * GET /wallet/check-deposit
+     * Check for pending deposit and auto-activate if found
+     */
+    checkDeposit: () =>
+        api.get<CheckDepositResponse>('/wallet/check-deposit'),
 };
+
 
 // Local types for transactions (inferred from backend)
 interface Transaction {

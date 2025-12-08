@@ -44,9 +44,9 @@ export const router = createBrowserRouter([
     // ============ Auth Routes (Guest Only) ============
     {
         element: (
-            // <GuestGuard>
-            <AuthLayout />
-            // </GuestGuard>
+            <GuestGuard>
+                <AuthLayout />
+            </GuestGuard>
         ),
         children: [
             { path: ROUTES.WELCOME, element: <WelcomePage /> },
@@ -79,11 +79,11 @@ export const router = createBrowserRouter([
     // ============ Main App Routes (Auth + Activated) ============
     {
         element: (
-            // <AuthGuard>
-            //     <ActivatedGuard>
-            <MainLayout />
-            //     </ActivatedGuard>
-            // </AuthGuard>
+            <AuthGuard>
+                <ActivatedGuard>
+                    <MainLayout />
+                </ActivatedGuard>
+            </AuthGuard>
         ),
         children: [
             // Home
