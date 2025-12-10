@@ -35,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
             tempData: null,
             isAuthenticated: false,
             isLoading: true,
+            depositAddress: null,
 
             // Computed getters
             get isActivated() {
@@ -45,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
             },
 
             // Actions
-            setAuth: (user, accessToken, refreshToken) =>
+            setAuth: (user, accessToken, refreshToken,) =>
                 set({
                     user,
                     accessToken,

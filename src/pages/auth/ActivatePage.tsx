@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useSearchParams, useLocation } from 'react-route
 import { useAuthStore } from '@/stores';
 import { useCheckDeposit } from '@/hooks/queries';
 import { ROUTES } from '@/constants/routes';
+import { PageLoader } from '@/components/ui';
 
 // Assets
 import onboardingBgSrc from '@/assets/images/onboarding-background.png';
@@ -16,17 +17,18 @@ import iconMemoSrc from '@/assets/icons/icon-memo.svg';
 interface ActivateData {
     userId: string;
     email: string;
-    solanaAddress: string;
+    solanaAddress?: string;
+    depositAddress: string;
 }
 
 const MIN_DEPOSIT = 40000;
-const POLL_INTERVAL = 10000; // 10 seconds
+const POLL_INTERVAL = 10000;
 
 export function ActivatePage() {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams] = useSearchParams();
-    const { user } = useAuthStore();
+    const { user, isLoading, logout } = useAuthStore();
 
     const [copiedField, setCopiedField] = useState<'wallet' | 'memo' | null>(null);
     const [checkError, setCheckError] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export function ActivatePage() {
         checkOnce,
     } = useCheckDeposit({
         pollingInterval: POLL_INTERVAL,
+        maxAttempts: 30,
         onActivated: (result) => {
             navigate(ROUTES.ACTIVATE_SUCCESS, {
                 state: {
@@ -54,17 +57,21 @@ export function ActivatePage() {
         onError: (error) => {
             setCheckError(error.message || 'Failed to check deposit');
         },
+        onTimeout: () => {
+            setCheckError('Timed out waiting for deposit. Please click "Check Deposit" to try again.');
+        },
     });
 
-    // Get deposit address from: location state > URL params > user store
+    // Get deposit address from: location state > URL params
     const activateData = useMemo<ActivateData | null>(() => {
         // From location state (after signup)
         const stateAddress = location.state?.depositAddress;
-        if (stateAddress && user) {
+        if (stateAddress) {
             return {
-                userId: user._id,
-                email: user.email,
-                solanaAddress: stateAddress,
+                userId: user?._id || '',
+                email: user?.email || '',
+                solanaAddress: user?.solanaAddress,
+                depositAddress: stateAddress,
             };
         }
 
@@ -73,23 +80,35 @@ export function ActivatePage() {
         if (dataParam) {
             try {
                 const decoded = atob(dataParam);
-                return JSON.parse(decoded) as ActivateData;
+                const parsed = JSON.parse(decoded);
+                return {
+                    userId: parsed.userId,
+                    email: parsed.email,
+                    solanaAddress: parsed.solanaAddress,
+                    depositAddress: parsed.depositAddress,
+                } as ActivateData;
             } catch (e) {
                 console.error('Failed to parse activate data:', e);
             }
         }
 
-        // From user store
-        if (user?.solanaAddress) {
+        return null;
+    }, [location.state, searchParams, user]);
+
+    // Update activateData when user becomes available
+    const finalActivateData = useMemo<ActivateData | null>(() => {
+        if (!activateData) return null;
+
+        if (!activateData.userId && user?._id) {
             return {
+                ...activateData,
                 userId: user._id,
                 email: user.email,
-                solanaAddress: user.solanaAddress,
             };
         }
 
-        return null;
-    }, [location.state, searchParams, user]);
+        return activateData;
+    }, [activateData, user]);
 
     // Cleanup polling on unmount
     useEffect(() => {
@@ -98,12 +117,22 @@ export function ActivatePage() {
         };
     }, [stopPolling]);
 
-    if (!activateData) {
+    // Show loader while auth is loading
+    if (isLoading) {
+        return <PageLoader />;
+    }
+
+    // Redirect if no data
+    if (!finalActivateData && !location.state?.depositAddress) {
         return <Navigate to={ROUTES.WELCOME} replace />;
     }
 
-    const walletAddress = activateData.solanaAddress;
-    const memoCode = activateData.userId;
+    if (!finalActivateData) {
+        return <PageLoader />;
+    }
+
+    const walletAddress = finalActivateData.depositAddress;
+    const memoCode = finalActivateData.userId;
 
     const handleCopy = async (text: string, field: 'wallet' | 'memo') => {
         try {
@@ -117,23 +146,21 @@ export function ActivatePage() {
 
     const handleCheckDeposit = () => {
         setCheckError(null);
-        if (isPolling) {
-            // Already polling, just do a manual check
-            checkOnce();
-        } else {
-            // Start polling
+        if (!isPolling) {
             startPolling();
         }
+        checkOnce();
     };
 
     const handleBack = () => {
         stopPolling();
+        stopPolling();
+        logout();  // Clear auth state
         navigate(ROUTES.WELCOME);
     };
 
     return (
         <div className="onboarding-shell">
-            {/* Background */}
             <img
                 src={onboardingBgSrc}
                 alt=""
@@ -141,9 +168,7 @@ export function ActivatePage() {
                 aria-hidden="true"
             />
 
-            {/* Hero section */}
             <div className="onboarding-hero">
-                {/* Header dots */}
                 <header className="onboarding-header">
                     <div className="dot-row">
                         <span className="dot"></span>
@@ -152,12 +177,10 @@ export function ActivatePage() {
                     </div>
                 </header>
 
-                {/* Title */}
                 <h1 className="slide-title">
                     It's time to put your BONK where your meme is
                 </h1>
 
-                {/* Artwork */}
                 <div className="onboarding-artwork-wrapper">
                     <img
                         src={bgConfettiSrc}
@@ -179,9 +202,7 @@ export function ActivatePage() {
                 </div>
             </div>
 
-            {/* Content area with rectangle background */}
             <div className="onboarding-content">
-                {/* Rectangle background with wave top */}
                 <img
                     src={rectangleSrc}
                     alt=""
@@ -228,10 +249,11 @@ export function ActivatePage() {
                                 alt=""
                                 className="chip-icon"
                             />
-                            <span className="chip-placeholder">{memoCode}</span>
+                            <span className="chip-placeholder">{memoCode || 'Loading...'}</span>
                             <button
                                 className="chip-action"
-                                onClick={() => handleCopy(memoCode, 'memo')}
+                                onClick={() => memoCode && handleCopy(memoCode, 'memo')}
+                                disabled={!memoCode}
                             >
                                 {copiedField === 'memo' ? 'Copied!' : 'Copy Memo'}
                             </button>
@@ -242,15 +264,16 @@ export function ActivatePage() {
                         Make sure to add the memo or your deposit will be lost
                     </p>
 
-                    {/* Status messages */}
-                    {isPolling && !checkResult?.found && (
+                    {isPolling && (
                         <div className="status-card status-polling">
                             <span className="spinner spinner-small" />
-                            <span>Watching for your deposit...</span>
+                            <span>
+                                {checkResult?.message || 'Watching for your deposit...'}
+                            </span>
                         </div>
                     )}
 
-                    {checkResult?.found === false && checkResult?.message && !isPolling && (
+                    {!isPolling && checkResult?.found === false && checkResult?.message && (
                         <p className="slide-info">{checkResult.message}</p>
                     )}
 
@@ -262,7 +285,7 @@ export function ActivatePage() {
                         <button
                             className="btn cta-primary"
                             onClick={handleCheckDeposit}
-                            disabled={isChecking}
+                            disabled={isChecking || !memoCode}
                         >
                             {isChecking ? (
                                 <span className="spinner" />

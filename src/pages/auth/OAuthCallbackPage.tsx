@@ -36,17 +36,16 @@ export function OAuthCallbackPage() {
             if (authParam) {
                 try {
                     const decoded = atob(authParam);
-                    const authData = JSON.parse(decoded) as {
-                        accessToken: string;
-                        refreshToken: string;
-                        user: Parameters<typeof setAuth>[0];
-                    };
+                    const authData = JSON.parse(decoded);
 
                     setAuth(authData.user, authData.accessToken, authData.refreshToken);
 
                     // Check if user is activated
                     if (!authData.user.isActivated) {
-                        navigate(ROUTES.ACTIVATE, { replace: true });
+                        navigate(ROUTES.ACTIVATE, {
+                            state: { depositAddress: authData.depositAddress },
+                            replace: true
+                        });
                     } else {
                         navigate(ROUTES.HOME, { replace: true });
                     }

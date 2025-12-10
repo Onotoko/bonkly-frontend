@@ -8,42 +8,49 @@ import type { CheckDepositResponse } from '@/types/api';
 interface UseCheckDepositOptions {
     /** Polling interval in ms (default: 10000 = 10s) */
     pollingInterval?: number;
+    /** Max polling attempts before stopping (default: 30 = 5 minutes) */
+    maxAttempts?: number;
     /** Whether to start polling immediately (default: false) */
     autoStart?: boolean;
     /** Callback when deposit is found and activated */
     onActivated?: (result: CheckDepositResponse) => void;
     /** Callback on error */
     onError?: (error: Error) => void;
+    /** Callback when max attempts reached */
+    onTimeout?: () => void;
 }
 
 export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
     const {
         pollingInterval = 10000,
+        maxAttempts = 30,
         autoStart = false,
         onActivated,
         onError,
+        onTimeout,
     } = options;
 
     const [isPolling, setIsPolling] = useState(autoStart);
     const { user, setUser } = useAuthStore();
     const qc = useQueryClient();
 
-    // Track if we've already handled activation to prevent double calls
+    // Track attempts and activation state
+    const attemptsRef = useRef(0);
     const hasActivatedRef = useRef(false);
+    const timeoutCalledRef = useRef(false);
 
     const query = useQuery({
         queryKey: queryKeys.wallet.checkDeposit(),
         queryFn: async () => {
+            attemptsRef.current += 1;
+
             const result = await walletService.checkDeposit();
 
-            // Handle activation inside queryFn to avoid useEffect issues
+            // Handle activation
             if (result.activated && result.found && !hasActivatedRef.current) {
                 hasActivatedRef.current = true;
-
-                // Stop polling
                 setIsPolling(false);
 
-                // Update user in store
                 if (user) {
                     setUser({
                         ...user,
@@ -54,12 +61,19 @@ export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
                     });
                 }
 
-                // Invalidate related queries
                 qc.invalidateQueries({ queryKey: queryKeys.user.me() });
                 qc.invalidateQueries({ queryKey: queryKeys.wallet.balance() });
 
-                // Call callback
                 onActivated?.(result);
+            }
+
+            // Check max attempts
+            if (attemptsRef.current >= maxAttempts && !hasActivatedRef.current) {
+                setIsPolling(false);
+                if (!timeoutCalledRef.current) {
+                    timeoutCalledRef.current = true;
+                    onTimeout?.();
+                }
             }
 
             return result;
@@ -71,15 +85,16 @@ export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
         staleTime: 0,
     });
 
-    // Handle errors via query's error state
+    // Handle errors
     const error = query.error as Error | null;
     if (error && onError) {
-        // Use setTimeout to avoid sync setState in render
         setTimeout(() => onError(error), 0);
     }
 
     const startPolling = useCallback(() => {
+        attemptsRef.current = 0;
         hasActivatedRef.current = false;
+        timeoutCalledRef.current = false;
         setIsPolling(true);
     }, []);
 
@@ -97,6 +112,7 @@ export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
         isChecking: query.isFetching,
         isPolling,
         error,
+        maxAttempts,
         startPolling,
         stopPolling,
         checkOnce,
