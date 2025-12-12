@@ -7,7 +7,7 @@ interface CreateMemeSheetProps {
     onClose: () => void;
 }
 
-export default function CreateMemeSheet({ isOpen, onClose }: CreateMemeSheetProps) {
+export function CreateMemeSheet({ isOpen, onClose }: CreateMemeSheetProps) {
     const navigate = useNavigate();
 
     const handleUpload = () => {

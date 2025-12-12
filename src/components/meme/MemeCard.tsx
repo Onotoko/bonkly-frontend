@@ -28,7 +28,7 @@ function formatTimeAgo(date: string): string {
     return then.toLocaleDateString();
 }
 
-export default function MemeCard({ meme, onClick }: MemeCardProps) {
+export function MemeCard({ meme, onClick }: MemeCardProps) {
     const handleLove = (e: React.MouseEvent) => {
         e.stopPropagation();
         // TODO: Implement love action

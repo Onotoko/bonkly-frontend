@@ -52,8 +52,8 @@ export const router = createBrowserRouter([
             { path: ROUTES.WELCOME, element: <WelcomePage /> },
             { path: ROUTES.REFERRAL, element: <ReferralPage /> },
             { path: ROUTES.SIGNUP, element: <SignupPage /> },
-            { path: ROUTES.ACTIVATE, element: <ActivatePage /> },
-            { path: ROUTES.ACTIVATE_SUCCESS, element: <ActivateSuccessPage /> },
+            // { path: ROUTES.ACTIVATE, element: <ActivatePage /> },
+            // { path: ROUTES.ACTIVATE_SUCCESS, element: <ActivateSuccessPage /> },
         ],
     },
 
