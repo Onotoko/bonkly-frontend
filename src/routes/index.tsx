@@ -17,6 +17,8 @@ import {
     ActivateSuccessPage,
 } from '@/pages/auth';
 
+import { SearchPage } from '@/pages/search';
+
 // Main Pages
 import { HomePage } from '@/pages/home/HomePage';
 import { MemeDetailPage, CreateMemePage } from '@/pages/meme';
@@ -88,6 +90,8 @@ export const router = createBrowserRouter([
         children: [
             // Home
             { path: ROUTES.HOME, element: <HomePage /> },
+            // Search
+            { path: ROUTES.SEARCH, element: <SearchPage /> },
 
             // Meme
             { path: ROUTES.MEME_DETAIL, element: <MemeDetailPage /> },

@@ -22,7 +22,6 @@ export const commentService = {
     getByMeme: (memeId: string, params?: FeedParams) =>
         api.get<CommentListResponse>(
             `/memes/${memeId}/comments${buildQuery(params)}`,
-            false
         ),
 
     /**
@@ -32,7 +31,6 @@ export const commentService = {
     getReplies: (commentId: string, params?: FeedParams) =>
         api.get<CommentListResponse>(
             `/comments/${commentId}/replies${buildQuery(params)}`,
-            false
         ),
 
     /**

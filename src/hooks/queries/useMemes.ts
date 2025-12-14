@@ -9,6 +9,30 @@ const getNextPage = (lastPage: MemeListResponse) =>
         ? lastPage.pagination.page + 1
         : undefined;
 
+// Helper to update meme in infinite query cache
+const updateMemeInFeed = (
+    qc: ReturnType<typeof useQueryClient>,
+    queryKey: readonly unknown[],
+    memeId: string,
+    updater: (meme: Meme) => Meme
+) => {
+    qc.setQueryData<{ pages: MemeListResponse[]; pageParams: number[] }>(
+        queryKey,
+        (old) => {
+            if (!old) return old;
+            return {
+                ...old,
+                pages: old.pages.map((page) => ({
+                    ...page,
+                    memes: page.memes.map((meme) =>
+                        meme.id === memeId ? updater(meme) : meme
+                    ),
+                })),
+            };
+        }
+    );
+};
+
 /**
  * Get single meme by ID
  */
@@ -36,9 +60,6 @@ export const useUserMemes = (username: string, limit = 20) => {
 
 // ============ Feeds ============
 
-/**
- * New memes feed
- */
 export const useFeedNew = (limit = 20) => {
     return useInfiniteQuery({
         queryKey: queryKeys.memes.feedNew(),
@@ -49,9 +70,6 @@ export const useFeedNew = (limit = 20) => {
     });
 };
 
-/**
- * Trending memes feed
- */
 export const useFeedTrending = (limit = 20) => {
     return useInfiniteQuery({
         queryKey: queryKeys.memes.feedTrending(),
@@ -62,9 +80,6 @@ export const useFeedTrending = (limit = 20) => {
     });
 };
 
-/**
- * For You personalized feed (requires auth)
- */
 export const useFeedForYou = (limit = 20) => {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     return useInfiniteQuery({
@@ -77,9 +92,6 @@ export const useFeedForYou = (limit = 20) => {
     });
 };
 
-/**
- * Saved memes
- */
 export const useSavedMemes = (limit = 20) => {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     return useInfiniteQuery({
@@ -94,9 +106,6 @@ export const useSavedMemes = (limit = 20) => {
 
 // ============ Mutations ============
 
-/**
- * Create meme
- */
 export const useCreateMeme = () => {
     const qc = useQueryClient();
     return useMutation({
@@ -108,9 +117,6 @@ export const useCreateMeme = () => {
     });
 };
 
-/**
- * Delete meme
- */
 export const useDeleteMeme = () => {
     const qc = useQueryClient();
     return useMutation({
@@ -122,72 +128,131 @@ export const useDeleteMeme = () => {
 };
 
 /**
- * Toggle love on meme (optimistic update)
+ * Toggle love on meme (optimistic update for ALL feeds)
  */
 export const useLoveMeme = () => {
     const qc = useQueryClient();
+
     return useMutation({
         mutationFn: (id: string) => memeService.love(id),
         onMutate: async (id) => {
-            await qc.cancelQueries({ queryKey: queryKeys.memes.detail(id) });
-            const prev = qc.getQueryData<Meme>(queryKeys.memes.detail(id));
-            if (prev) {
-                qc.setQueryData(queryKeys.memes.detail(id), {
-                    ...prev,
-                    hasLoved: !prev.hasLoved,
-                    loveCount: prev.hasLoved ? prev.loveCount - 1 : prev.loveCount + 1,
-                });
+            // Cancel any outgoing refetches
+            await qc.cancelQueries({ queryKey: queryKeys.memes.feedTrending() });
+            await qc.cancelQueries({ queryKey: queryKeys.memes.feedNew() });
+            await qc.cancelQueries({ queryKey: queryKeys.memes.feedForYou() });
+
+            // Updater function
+            const toggleLove = (meme: Meme): Meme => ({
+                ...meme,
+                hasLoved: !meme.hasLoved,
+                loveCount: meme.hasLoved ? meme.loveCount - 1 : meme.loveCount + 1,
+            });
+
+            // Update all feeds optimistically
+            updateMemeInFeed(qc, queryKeys.memes.feedTrending(), id, toggleLove);
+            updateMemeInFeed(qc, queryKeys.memes.feedNew(), id, toggleLove);
+            updateMemeInFeed(qc, queryKeys.memes.feedForYou(), id, toggleLove);
+
+            // Also update detail if cached
+            const prevDetail = qc.getQueryData<Meme>(queryKeys.memes.detail(id));
+            if (prevDetail) {
+                qc.setQueryData(queryKeys.memes.detail(id), toggleLove(prevDetail));
             }
-            return { prev };
+
+            return { id };
         },
-        onError: (_, id, ctx) => {
-            if (ctx?.prev) qc.setQueryData(queryKeys.memes.detail(id), ctx.prev);
-        },
-        onSettled: (_, __, id) => {
+        onError: (_, id) => {
+            // Refetch on error to get correct state
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedTrending() });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedNew() });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedForYou() });
             qc.invalidateQueries({ queryKey: queryKeys.memes.detail(id) });
         },
     });
 };
 
 /**
- * Laugh at meme
+ * Laugh at meme (optimistic update)
  */
 export const useLaughMeme = () => {
     const qc = useQueryClient();
+
     return useMutation({
         mutationFn: ({ id, sliderPercentage }: { id: string; sliderPercentage: number }) =>
             memeService.laugh(id, { sliderPercentage }),
+        onMutate: async ({ id }) => {
+            const toggleLaugh = (meme: Meme): Meme => ({
+                ...meme,
+                hasLaughed: true,
+                laughCount: meme.laughCount + 1,
+            });
+
+            updateMemeInFeed(qc, queryKeys.memes.feedTrending(), id, toggleLaugh);
+            updateMemeInFeed(qc, queryKeys.memes.feedNew(), id, toggleLaugh);
+            updateMemeInFeed(qc, queryKeys.memes.feedForYou(), id, toggleLaugh);
+        },
         onSuccess: (_, { id }) => {
             qc.invalidateQueries({ queryKey: queryKeys.memes.detail(id) });
             qc.invalidateQueries({ queryKey: queryKeys.wallet.balance() });
             qc.invalidateQueries({ queryKey: queryKeys.user.balances() });
         },
+        onError: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedTrending() });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedNew() });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedForYou() });
+        },
     });
 };
 
 /**
- * Toggle save meme
+ * Toggle save meme (optimistic update for ALL feeds)
  */
 export const useToggleSaveMeme = () => {
     const qc = useQueryClient();
+
     return useMutation({
         mutationFn: (id: string) => memeService.toggleSave(id),
         onMutate: async (id) => {
-            await qc.cancelQueries({ queryKey: queryKeys.memes.detail(id) });
-            const prev = qc.getQueryData<Meme>(queryKeys.memes.detail(id));
-            if (prev) {
-                qc.setQueryData(queryKeys.memes.detail(id), {
-                    ...prev,
-                    hasSaved: !prev.hasSaved,
-                });
+            const toggleSave = (meme: Meme): Meme => ({
+                ...meme,
+                hasSaved: !meme.hasSaved,
+            });
+
+            updateMemeInFeed(qc, queryKeys.memes.feedTrending(), id, toggleSave);
+            updateMemeInFeed(qc, queryKeys.memes.feedNew(), id, toggleSave);
+            updateMemeInFeed(qc, queryKeys.memes.feedForYou(), id, toggleSave);
+
+            const prevDetail = qc.getQueryData<Meme>(queryKeys.memes.detail(id));
+            if (prevDetail) {
+                qc.setQueryData(queryKeys.memes.detail(id), toggleSave(prevDetail));
             }
-            return { prev };
-        },
-        onError: (_, id, ctx) => {
-            if (ctx?.prev) qc.setQueryData(queryKeys.memes.detail(id), ctx.prev);
         },
         onSettled: () => {
             qc.invalidateQueries({ queryKey: queryKeys.memes.saved() });
         },
+        onError: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedTrending() });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedNew() });
+            qc.invalidateQueries({ queryKey: queryKeys.memes.feedForYou() });
+        },
+    });
+};
+
+export const useSearchMemes = (query: string, limit = 20) => {
+    return useInfiniteQuery({
+        queryKey: queryKeys.memes.search(query),
+        queryFn: ({ pageParam = 1 }) =>
+            memeService.search(query, { page: pageParam, limit }),
+        initialPageParam: 1,
+        getNextPageParam: getNextPage,
+        enabled: query.length >= 2,
+    });
+};
+
+export const useTrendingTags = (limit = 10) => {
+    return useQuery({
+        queryKey: queryKeys.memes.trendingTags(),
+        queryFn: () => memeService.getTrendingTags(limit),
+        staleTime: 5 * 60 * 1000,
     });
 };

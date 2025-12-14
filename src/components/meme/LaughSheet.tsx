@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useBalances } from '@/hooks/queries';
 
 // Icons
 import iconClose from '@/assets/icons/icon-close.svg';
@@ -9,8 +10,7 @@ interface LaughSheetProps {
     isOpen: boolean;
     onClose: () => void;
     handle: string;
-    laughWeight: number;
-    onSubmit: (amount: number) => void;
+    onSubmit: (sliderPercentage: number) => void;
 }
 
 const LAUGH_OPTIONS = [
@@ -19,12 +19,22 @@ const LAUGH_OPTIONS = [
     { emoji: '💀', label: "Can't breathe", percent: '100%', value: 100 },
 ];
 
-export function LaughSheet({ isOpen, onClose, handle, laughWeight, onSubmit }: LaughSheetProps) {
+export function LaughSheet({ isOpen, onClose, handle, onSubmit }: LaughSheetProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [sliderValue, setSliderValue] = useState(1);
 
+    // Get user balance
+    const { data: balances } = useBalances();
+    const laughWeight = balances?.laughWeight ?? 0;
+
     const bonkAmount = Math.round((sliderValue / 100) * laughWeight * 10) / 10;
-    const canSubmit = bonkAmount > 0 && bonkAmount <= laughWeight;
+    const canSubmit = bonkAmount > 0 && laughWeight > 0;
+
+    const handleClose = () => {
+        setSelectedIndex(0);
+        setSliderValue(1);
+        onClose();
+    };
 
     const handleChipClick = (index: number) => {
         setSelectedIndex(index);
@@ -35,7 +45,6 @@ export function LaughSheet({ isOpen, onClose, handle, laughWeight, onSubmit }: L
         const val = parseInt(e.target.value, 10);
         setSliderValue(val);
 
-        // Update selected chip based on value
         if (val <= 25) setSelectedIndex(0);
         else if (val <= 75) setSelectedIndex(1);
         else setSelectedIndex(2);
@@ -43,14 +52,14 @@ export function LaughSheet({ isOpen, onClose, handle, laughWeight, onSubmit }: L
 
     const handleSubmit = () => {
         if (canSubmit) {
-            onSubmit(bonkAmount);
-            onClose();
+            onSubmit(sliderValue);
+            handleClose();
         }
     };
 
     const handleOverlayClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
-            onClose();
+            handleClose();
         }
     };
 
@@ -60,26 +69,23 @@ export function LaughSheet({ isOpen, onClose, handle, laughWeight, onSubmit }: L
             onClick={handleOverlayClick}
         >
             <div className="sheet">
-                {/* Header */}
                 <header className="sheet-header">
                     <h3 className="sheet-title">
                         Send a Laugh <span className="handle">{handle}</span>
                     </h3>
-                    <button className="sheet-close" onClick={onClose}>
+                    <button className="sheet-close" onClick={handleClose}>
                         <img src={iconClose} alt="Close" />
                     </button>
                 </header>
 
-                {/* Laugh Weight */}
                 <div className="laugh-weight">
                     <span className="label">Laugh Weight:</span>
                     <span className="laugh-weight-badge">
                         <img src={iconLaughWeight} alt="" />
-                        {laughWeight}
+                        {laughWeight.toFixed(1)}
                     </span>
                 </div>
 
-                {/* Options */}
                 <div className="laugh-options">
                     {LAUGH_OPTIONS.map((option, index) => (
                         <button
@@ -94,7 +100,6 @@ export function LaughSheet({ isOpen, onClose, handle, laughWeight, onSubmit }: L
                     ))}
                 </div>
 
-                {/* Slider */}
                 <div className="laugh-slider">
                     <input
                         type="range"
@@ -105,7 +110,6 @@ export function LaughSheet({ isOpen, onClose, handle, laughWeight, onSubmit }: L
                     />
                 </div>
 
-                {/* CTA */}
                 <button
                     className="laugh-cta"
                     onClick={handleSubmit}

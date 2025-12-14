@@ -36,6 +36,8 @@ export const ROUTES = {
     // Legal
     TERMS: '/terms',
     PRIVACY: '/privacy',
+
+    SEARCH: '/search',
 } as const;
 
 // Helper to build dynamic routes

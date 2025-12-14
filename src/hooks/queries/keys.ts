@@ -16,6 +16,8 @@ export const queryKeys = {
         feedTrending: () => [...queryKeys.memes.all, 'feed', 'trending'] as const,
         feedForYou: () => [...queryKeys.memes.all, 'feed', 'for-you'] as const,
         saved: () => [...queryKeys.memes.all, 'saved'] as const,
+        search: (query: string) => ['memes', 'search', query] as const,
+        trendingTags: () => ['memes', 'tags', 'trending'] as const,
     },
 
     // Wallet

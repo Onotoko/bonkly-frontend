@@ -462,3 +462,7 @@ export interface CheckDepositResponse {
     laughWeight?: number;
     message?: string;
 }
+
+export interface TrendingTagsResponse {
+    tags: string[];
+}

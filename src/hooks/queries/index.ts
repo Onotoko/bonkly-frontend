@@ -102,3 +102,7 @@ export {
 export {
     useCheckDeposit
 } from './useCheckDeposit'
+
+export { useSearchMemes, useTrendingTags } from './useMemes';
+
+export { useDebounce } from './useDebounce';

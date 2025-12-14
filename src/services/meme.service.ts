@@ -6,6 +6,7 @@ import type {
     LaughResponse,
     MemeListResponse,
     FeedParams,
+    TrendingTagsResponse
 } from '../types/api';
 import { buildQuery } from '../utils/query';
 
@@ -20,7 +21,7 @@ export const memeService = {
      * GET /memes/:id
      * Get meme by ID (public)
      */
-    getById: (id: string) => api.get<Meme>(`/memes/${id}`, false),
+    getById: (id: string) => api.get<Meme>(`/memes/${id}`),
 
     /**
      * DELETE /memes/:id
@@ -56,14 +57,14 @@ export const memeService = {
      * New memes feed (public)
      */
     getFeedNew: (params?: FeedParams) =>
-        api.get<MemeListResponse>(`/memes/feed/new${buildQuery(params)}`, false),
+        api.get<MemeListResponse>(`/memes/feed/new${buildQuery(params)}`),
 
     /**
      * GET /memes/feed/trending
      * Trending memes feed (public)
      */
     getFeedTrending: (params?: FeedParams) =>
-        api.get<MemeListResponse>(`/memes/feed/trending${buildQuery(params)}`, false),
+        api.get<MemeListResponse>(`/memes/feed/trending${buildQuery(params)}`),
 
     /**
      * GET /memes/feed/for-you
@@ -84,5 +85,23 @@ export const memeService = {
      * Get user's memes (public)
      */
     getUserMemes: (username: string, params?: FeedParams) =>
-        api.get<MemeListResponse>(`/memes/user/${username}${buildQuery(params)}`, false),
+        api.get<MemeListResponse>(`/memes/user/${username}${buildQuery(params)}`),
+    /**
+     * Search memes
+     * GET /memes/search?q=query&page=1&limit=20
+     */
+    search: (query: string, params?: FeedParams) =>
+        api.get<MemeListResponse>(
+            `/memes/search?q=${encodeURIComponent(query)}${params?.page ? `&page=${params.page}` : ''}${params?.limit ? `&limit=${params.limit}` : ''}`,
+
+        ),
+
+    /**
+     * Get trending tags
+     * GET /memes/tags/trending?limit=10
+     */
+    getTrendingTags: (limit = 10) =>
+        api.get<TrendingTagsResponse>(
+            `/memes/tags/trending${buildQuery({ limit })}`,
+        ),
 };

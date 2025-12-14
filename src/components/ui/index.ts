@@ -29,3 +29,5 @@ export type { BadgeProps, TagProps, BadgeVariant } from './Badge';
 // Toast
 export { ToastContainer } from './Toast';
 export type { ToastData, ToastType } from './Toast';
+
+export { ResultModal } from './ResultModal';
