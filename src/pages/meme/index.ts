@@ -1,2 +1,2 @@
-export { CreateMemePage } from './CreateMemePage';
 export { MemeDetailPage } from './MemeDetailPage';
+export { CreateMemePage } from './CreateMemePage';

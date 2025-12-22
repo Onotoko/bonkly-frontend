@@ -13,8 +13,9 @@ export const creditService = {
     /**
      * GET /credits/packages
      * Get all available credit packages
+     * Note: Backend requires auth for this endpoint
      */
-    getPackages: () => api.get<CreditPackage[]>('/credits/packages', false),
+    getPackages: () => api.get<CreditPackage[]>('/credits/packages'),
 
     /**
      * GET /credits/balance

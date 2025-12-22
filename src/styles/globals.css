@@ -9,6 +9,8 @@
 /* Feature styles */
 @import './auth.css';
 @import './main.css';
+@import './meme-detail.css';
+@import './create-meme.css';
 
 /* Tailwind */
 @tailwind base;
