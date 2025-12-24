@@ -1,0 +1,286 @@
+/* ============================================
+   MEDIA PICKER MODAL
+   ============================================ */
+
+.media-picker-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.media-picker-sheet {
+    width: 100%;
+    max-width: 540px;
+    height: 85vh;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 250ms ease;
+}
+
+/* Header */
+.media-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #e6e8ed;
+    flex-shrink: 0;
+}
+
+.media-picker-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1f1f1f;
+}
+
+.media-picker-header .icon-button {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.media-picker-header .icon-button img {
+    width: 20px;
+    height: 20px;
+}
+
+.media-picker-header .icon-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Toolbar */
+.media-picker-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e6e8ed;
+    flex-shrink: 0;
+}
+
+.media-filter-btn {
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f1f1f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.media-filter-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.media-next-btn {
+    background: #fff;
+    border: 1px solid #d3d7de;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f1f1f;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.media-next-btn:hover:not(:disabled) {
+    background: #f5f6f7;
+}
+
+.media-next-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Error message */
+.media-picker-error {
+    padding: 12px 16px;
+    background: #ffeaea;
+    color: #fe0405;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Progress bar */
+.media-picker-progress {
+    height: 4px;
+    background: #e5e7eb;
+    flex-shrink: 0;
+}
+
+.media-picker-progress-bar {
+    height: 100%;
+    background: #fe0405;
+    transition: width 0.3s ease;
+}
+
+/* Media Grid */
+.media-picker-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 2px;
+    overflow-y: auto;
+    background: #f2f4f7;
+}
+
+.media-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #e5e7eb;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.media-item img,
+.media-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-item.selected {
+    outline: 3px solid #fe0405;
+    outline-offset: -3px;
+}
+
+.media-check {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fe0405;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Change hint overlay */
+.media-change-hint {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.media-item.selected:hover .media-change-hint {
+    opacity: 1;
+}
+
+/* Recent media item */
+.media-item.recent {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.media-item.recent:hover {
+    transform: scale(1.02);
+}
+
+.media-item.recent:active {
+    transform: scale(0.98);
+}
+
+/* Add media button (empty state) */
+.media-item.add-media {
+    grid-column: span 3;
+    aspect-ratio: auto;
+    min-height: 200px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #d3d7de;
+    margin: 16px;
+    border-radius: 16px;
+}
+
+.add-media-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #8a8f99;
+}
+
+.add-media-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f2f4f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #8a8f99;
+}
+
+.add-media-text {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Add more button (when media selected) */
+.media-item.add-more {
+    background: #f2f4f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #d3d7de;
+}
+
+.add-more-icon {
+    font-size: 32px;
+    color: #8a8f99;
+}
+
+/* Help text */
+.media-picker-help {
+    padding: 16px;
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    color: #8a8f99;
+    border-top: 1px solid #e6e8ed;
+    flex-shrink: 0;
+}
+
+/* Animation */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}

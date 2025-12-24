@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { LaughSheet, CommentSheet, MoreSheet, ShareSheet } from '@/components/meme';
 import { ResultModal } from '@/components/ui';
+import { CreateMemeSheet } from '@/components/meme';
 
 // Hooks
 import { useFeedTrending, useFeedNew, useFeedForYou, useLoveMeme, useLaughMeme } from '@/hooks/queries';
@@ -107,6 +108,9 @@ export function HomePage() {
         title: '',
         message: '',
     });
+
+    const [showCreateSheet, setShowCreateSheet] = useState(false);
+
 
     // Handlers
     const openLaughSheet = (handle: string, memeId: string, hasLaughed: boolean) => {
@@ -393,12 +397,12 @@ export function HomePage() {
             </main>
 
             {/* FAB - Create Meme */}
-            <Link to={ROUTES.CREATE_MEME} className="fab-create">
+            <button className="fab-create" onClick={() => setShowCreateSheet(true)}>
                 <div className="fab-icon-wrap">
                     <img src={iconCreateMeme} alt="" />
                 </div>
                 <span className="fab-label">+ Post Meme</span>
-            </Link>
+            </button>
 
             <CommentSheet
                 isOpen={commentSheet.isOpen}
@@ -439,6 +443,11 @@ export function HomePage() {
                 message={resultModal.message}
                 primaryLabel="Okay"
                 onPrimary={closeResultModal}
+            />
+
+            <CreateMemeSheet
+                isOpen={showCreateSheet}
+                onClose={() => setShowCreateSheet(false)}
             />
         </div>
     );

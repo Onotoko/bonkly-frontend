@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 
+// Components
+import { MediaPickerModal, SelectedMedia } from '@/components/meme/MediaPickerModal';
+
 // Hooks
 import {
     useGenerateAI,
@@ -15,10 +18,11 @@ import {
 import iconBack from '@/assets/icons/icon-back.svg';
 import iconClose from '@/assets/icons/icon-close.svg';
 import iconBonk from '@/assets/icons/icon-bonk.png';
+import iconPowerUp from '@/assets/icons/icon-power-up.svg';
 
 // Images
 import ornament from '@/assets/images/ornament-1.png';
-import aiLaughFace from '@/assets/illustrations/laugh.png';
+import aiLaughFace from '@/assets/icons/icon-meme-ai-laugh.png';
 import successIllustration from '@/assets/illustrations/result-success.png';
 import failIllustration from '@/assets/illustrations/result-error.png';
 
@@ -74,6 +78,7 @@ export function CreateMemePage() {
     // AI state
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiTemplate, setAiTemplate] = useState<AITemplate>('image');
+    const [aiReferenceMedia, setAiReferenceMedia] = useState<SelectedMedia | null>(null);
 
     // Post form state
     const [formData, setFormData] = useState<PostFormData>({
@@ -87,6 +92,7 @@ export function CreateMemePage() {
     const [showPowerUpModal, setShowPowerUpModal] = useState(false);
     const [showVisibilitySheet, setShowVisibilitySheet] = useState(false);
     const [showDiscardModal, setShowDiscardModal] = useState(false);
+    const [showAIMediaPicker, setShowAIMediaPicker] = useState(false);
     const [resultModal, setResultModal] = useState<{
         isOpen: boolean;
         type: 'success' | 'error';
@@ -97,6 +103,7 @@ export function CreateMemePage() {
     // Queries & Mutations
     const { data: creditData } = useCreditBalance();
     const { data: packagesData } = useCreditPackages();
+
     const aiMutation = useGenerateAI();
     const createMemeMutation = useCreateMeme();
     const purchaseMutation = usePurchaseCredits();
@@ -139,6 +146,22 @@ export function CreateMemePage() {
     };
 
     // ============ AI Flow ============
+    const handleAddReferenceMedia = () => {
+        setShowAIMediaPicker(true);
+    };
+
+    const handleAIMediaSelected = (media: SelectedMedia) => {
+        setAiReferenceMedia(media);
+        setShowAIMediaPicker(false);
+    };
+
+    const handleRemoveReferenceMedia = () => {
+        if (aiReferenceMedia) {
+            URL.revokeObjectURL(aiReferenceMedia.previewUrl);
+        }
+        setAiReferenceMedia(null);
+    };
+
     const handleCookMeme = async () => {
         if (!aiPrompt.trim()) return;
 
@@ -314,20 +337,43 @@ export function CreateMemePage() {
                             maxLength={140}
                         />
                         <span className="ai-char">{aiPrompt.length}/140</span>
+                        <button
+                            className="ai-add-media"
+                            onClick={handleAddReferenceMedia}
+                        >
+                            + Add Image/Video
+                        </button>
                     </div>
-                    <button className="ai-add-media">
-                        + Add Image/Video
-                    </button>
+
+                    {/* Reference media preview */}
+                    {aiReferenceMedia && (
+                        <div className="ai-reference-preview">
+                            {aiReferenceMedia.type === 'video' ? (
+                                <video src={aiReferenceMedia.previewUrl} />
+                            ) : (
+                                <img src={aiReferenceMedia.previewUrl} alt="Reference" />
+                            )}
+                            <button
+                                className="ai-reference-remove"
+                                onClick={handleRemoveReferenceMedia}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
             <div className="ai-footer">
                 <div className="ai-credits-row">
                     <span className="credit-pill green">
-                        <span className="credit-dot">●</span>
+                        <img src={iconPowerUp} alt="" />
                         {credits} Credits
                     </span>
-                    <button className="add-more-btn" onClick={() => setShowPowerUpModal(true)}>
+                    <button
+                        className="add-more-btn"
+                        onClick={() => setShowPowerUpModal(true)}
+                    >
                         Add More ▾
                     </button>
                 </div>
@@ -410,7 +456,7 @@ export function CreateMemePage() {
                     <div className="post-tags-wrap">
                         <div className="tag-list">
                             {formData.tags.map(tag => (
-                                <span key={tag} className="tag-chip">
+                                <span key={`tag-${tag}`} className="tag-chip">
                                     #{tag}
                                     <button onClick={() => handleRemoveTag(tag)}>×</button>
                                 </span>
@@ -463,37 +509,45 @@ export function CreateMemePage() {
 
                 <div className="power-balances">
                     <div className="power-balance">
-                        <span className="balance-label">Credits:</span>
-                        <span className="balance-badge green">
-                            <span className="dot">●</span>
+                        <span className="label">Credits:</span>
+                        <span className="badge green">
+                            <img src={iconPowerUp} alt="" />
                             {credits}
                         </span>
                     </div>
                     <div className="power-balance">
-                        <span className="balance-label">BONK Balance:</span>
-                        <span className="balance-badge yellow">
+                        <span className="label">BONK Balance:</span>
+                        <span className="badge yellow">
                             <img src={iconBonk} alt="" />
                             {creditData?.bonkWalletBalance?.toLocaleString() ?? 0}
                         </span>
                     </div>
                 </div>
 
-                <div className="power-packages">
-                    {packagesData?.map(pkg => (
-                        <button
-                            key={pkg.id}
-                            className="power-package"
-                            onClick={() => handlePurchaseCredits(pkg.id)}
-                            disabled={purchaseMutation.isPending}
-                        >
-                            <span className="pkg-icon">●</span>
-                            <span className="pkg-credits">{pkg.credits} Credits</span>
-                            <span className="pkg-price">
-                                <img src={iconBonk} alt="" />
-                                {pkg.bonkPrice.toLocaleString()}
-                            </span>
-                        </button>
-                    ))}
+                <div className="power-cards">
+                    {/* Filter unique packages by packageId */}
+                    {(packagesData ?? [])
+                        .filter((pkg, index, arr) =>
+                            arr.findIndex(p => p.packageId === pkg.packageId) === index
+                        )
+                        .sort((a, b) => a.credits - b.credits)
+                        .map((pkg) => (
+                            <button
+                                key={pkg.packageId}
+                                className="power-card"
+                                onClick={() => handlePurchaseCredits(pkg.packageId)}
+                                disabled={purchaseMutation.isPending}
+                            >
+                                <div className="power-head">
+                                    <img src={iconPowerUp} alt="" />
+                                </div>
+                                <span className="title">{pkg.credits} Credits</span>
+                                <span className="price">
+                                    <img src={iconBonk} alt="" />
+                                    {pkg.bonkCost?.toLocaleString() ?? 0}
+                                </span>
+                            </button>
+                        ))}
                 </div>
 
                 <button className="power-cta" onClick={() => setShowPowerUpModal(false)}>
@@ -513,6 +567,13 @@ export function CreateMemePage() {
 
             {/* Power Up Modal */}
             {renderPowerUpModal()}
+
+            {/* AI Reference Media Picker */}
+            <MediaPickerModal
+                isOpen={showAIMediaPicker}
+                onClose={() => setShowAIMediaPicker(false)}
+                onNext={handleAIMediaSelected}
+            />
 
             {/* Visibility Sheet */}
             {showVisibilitySheet && (

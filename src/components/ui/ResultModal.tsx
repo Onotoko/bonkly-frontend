@@ -47,6 +47,7 @@ export function ResultModal({
                     {primaryLabel}
                 </button>
             </div>
+
         </div>
     );
 }

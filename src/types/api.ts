@@ -368,11 +368,15 @@ export interface FollowListResponse {
 }
 
 export interface CreditPackage {
-    id: string;
-    name: string;
+    _id: string;
+    packageId: string;      // "credits_10", "credits_50", etc.
     credits: number;
-    bonkPrice: number;
+    bonkCost: number;
+    discount: number;
     isActive: boolean;
+    displayOrder: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreditBalance {
