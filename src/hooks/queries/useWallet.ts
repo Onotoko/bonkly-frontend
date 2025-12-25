@@ -158,3 +158,17 @@ export const useCancelPowerDown = () => {
         },
     });
 };
+
+/**
+ * Power up (convert BONK to dBONK)
+ */
+export const usePowerUp = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { bonkAmount: number }) => walletService.powerUp(data),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.wallet.balance() });
+            qc.invalidateQueries({ queryKey: queryKeys.user.balances() });
+        },
+    });
+};

@@ -16,6 +16,7 @@
 @import './user-profile.css';
 @import './terms.css';
 @import './profile-sheet.css';
+@import './earn.css';
 
 /* Tailwind */
 @tailwind base;

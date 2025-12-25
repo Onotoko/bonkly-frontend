@@ -97,6 +97,15 @@ export const walletService = {
      */
     checkDeposit: () =>
         api.get<CheckDepositResponse>('/wallet/check-deposit'),
+
+    /**
+     * POST /wallet/power-up
+     */
+    powerUp: (data: { bonkAmount: number }) =>
+        api.post<{ success: boolean; dbonkReceived: number; newDBonkBalance: number }>(
+            '/wallet/power-up',
+            data
+        ),
 };
 
 
