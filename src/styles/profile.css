@@ -1,0 +1,633 @@
+/* ============ Profile Shell ============ */
+.profile-shell {
+    max-width: 540px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 16px 16px 100px;
+    background: #fff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* ============ Profile Header ============ */
+.profile-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding-bottom: 16px;
+}
+
+.profile-top h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1f1f1f;
+}
+
+/* ============ Profile Hero ============ */
+.profile-hero {
+    display: grid;
+    gap: 14px;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-name-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #fe0405;
+}
+
+.profile-handle {
+    color: #8a8f99;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.profile-stats .stat-value {
+    font-weight: 700;
+    color: #222222;
+    font-size: 15px;
+    padding-bottom: 3px;
+}
+
+.profile-stats .stat-label {
+    color: #6a6f78;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+/* ============ Profile Bio ============ */
+.profile-bio {
+    color: #333;
+    font-weight: 500;
+    display: grid;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.add-bio {
+    margin: 10px auto 0 0;
+    display: flex;
+    padding: 8px 12px;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    border-radius: 30px;
+    border: 1px solid #D3D8E0;
+    background: #F2F4F8;
+    font-weight: 700;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
+.add-bio .add-icon {
+    color: #fe0405;
+    font-weight: 800;
+}
+
+/* ============ Profile Tabs ============ */
+.profile-tabs {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    margin: 20px -16px 3px;
+}
+
+.tab-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.tab-item img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    opacity: 0.5;
+}
+
+.tab-item.active {
+    border-bottom-color: #fe0405;
+}
+
+.tab-item.active img {
+    opacity: 1;
+}
+
+/* ============ Profile Grid ============ */
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin: 0 -16px;
+}
+
+.profile-grid img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+}
+
+/* ============ Profile Empty State ============ */
+.profile-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 80px 40px;
+    color: #4a4f58;
+    font-weight: 700;
+}
+
+.profile-empty img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    filter: grayscale(0.1);
+}
+
+.profile-empty p {
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #6a6f78;
+}
+
+.create-meme {
+    border: 2px solid #d2d8e0;
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 18px;
+    font-weight: 800;
+    color: #fe0405;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.18);
+}
+
+/* ============ Settings Modal ============ */
+.settings-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+}
+
+.settings-modal.open {
+    display: flex;
+}
+
+.settings-sheet {
+    width: 100%;
+    max-width: 540px;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    animation: slideUp 180ms ease;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+.settings-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #eef0f4;
+}
+
+.settings-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #22272E;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 18px;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    color: #666C75;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f2f5;
+    text-align: left;
+}
+
+.settings-icon img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+/* ============ Edit Profile Modal ============ */
+.edit-profile-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+}
+
+.edit-profile-modal.open {
+    display: flex;
+}
+
+.edit-profile-sheet {
+    width: 100%;
+    max-width: 540px;
+    height: 100%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e6e8ed;
+}
+
+.edit-title {
+    font-weight: 800;
+    font-size: 16px;
+    color: #22272E;
+}
+
+.edit-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    padding: 20px 16px;
+    overflow-y: auto;
+}
+
+.edit-photo-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.edit-avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.edit-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.edit-photo {
+    border: 1px solid #cfd5de;
+    background: #f4f7fb;
+    border-radius: 32px;
+    padding: 10px 14px;
+    font-weight: 700;
+    color: #333;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-fields {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-input,
+.edit-username input {
+    width: 100%;
+    border: 1px solid #dfe3e8;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14px;
+    outline: none;
+    background: #f7f9fc;
+    font-family: "Inter", sans-serif;
+}
+
+.edit-username {
+    width: 100%;
+    position: relative;
+}
+
+.edit-username .edit-hint {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8a8f99;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.edit-bio {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #dfe3e8;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14px;
+    outline: none;
+    background: #f7f9fc;
+    resize: none;
+    font-family: "Inter", sans-serif;
+}
+
+.edit-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+}
+
+.edit-save {
+    width: 100%;
+    background: #fe0405;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 20px;
+    font-weight: 800;
+    font-size: 18px;
+    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.28);
+    cursor: pointer;
+    margin: 12px 0 20px;
+}
+
+.edit-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ============ Account Modal ============ */
+.account-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 120;
+}
+
+.account-modal.open {
+    display: flex;
+}
+
+.account-sheet {
+    width: 100%;
+    max-width: 540px;
+    height: 100%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.account-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e6e8ed;
+}
+
+.account-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #22272E;
+}
+
+.account-list {
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.account-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 14px 18px;
+    border: none;
+    background: #fff;
+    border-bottom: 1px solid #f0f2f5;
+    font-weight: 500;
+    color: #4a4f58;
+    font-size: 14px;
+}
+
+.account-row.logout-row {
+    cursor: pointer;
+    text-align: left;
+}
+
+.account-label {
+    color: #4a4f58;
+}
+
+.account-value {
+    color: #8a8f99;
+}
+
+.account-arrow {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+/* ============ Logout Modal ============ */
+.logout-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 130;
+}
+
+.logout-modal.open {
+    display: flex;
+}
+
+.logout-sheet {
+    width: 100%;
+    max-width: 540px;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    animation: slideUp 180ms ease;
+}
+
+.logout-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e6e8ed;
+}
+
+.logout-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #22272E;
+}
+
+.logout-body {
+    padding: 24px 18px 30px;
+    text-align: center;
+    color: #6f7580;
+    font-weight: 500;
+}
+
+.logout-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px 18px 48px;
+}
+
+.logout-btn {
+    width: 100%;
+    border-radius: 999px;
+    padding: 14px;
+    font-weight: 800;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.18);
+}
+
+.logout-cancel {
+    background: #f1f3f6;
+    color: #2d3038;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+}
+
+.logout-confirm {
+    background: #7c19ff;
+    color: #fff;
+    box-shadow: 0 4px 0 rgba(80, 0, 180, 0.28);
+}
+
+/* ============ Icon Button ============ */
+.icon-button {
+    background: none;
+    border: none;
+    color: #7c8593;
+    cursor: pointer;
+    padding: 0;
+}
+
+.icon-button img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
+}
+
+.profile-top .icon-button img {
+    width: 32px;
+    height: 32px;
+}
+
+/* ============ Animation ============ */
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============ No Scroll ============ */
+body.no-scroll {
+    overflow: hidden;
+}

@@ -432,15 +432,15 @@ export interface GenerateAIRequest {
     duration?: number; // 5-60 for video
 }
 
-export interface GenerationResult {
-    success: boolean;
-    url: string;
-    mediaType: string;
-    creditsUsed: number;
-    creditsRemaining: number;
-    generationId: string;
-    metadata?: Record<string, unknown>;
-}
+// export interface GenerationResult {
+//     success: boolean;
+//     url: string;
+//     mediaType: string;
+//     creditsUsed: number;
+//     creditsRemaining: number;
+//     generationId: string;
+//     metadata?: Record<string, unknown>;
+// }
 
 export interface GenerationStatus {
     id: string;
@@ -469,4 +469,37 @@ export interface CheckDepositResponse {
 
 export interface TrendingTagsResponse {
     tags: string[];
+}
+
+export interface GenerateAIRequest {
+    prompt: string;
+    mediaType: 'image' | 'video' | 'gif';
+    duration?: number;
+    referenceMediaUrl?: string; // NEW: Optional reference image/video URL
+}
+
+export interface GenerationResult {
+    success: boolean;
+    url: string;
+    mediaType: 'image' | 'video' | 'gif';
+    creditsUsed: number;
+    creditsRemaining: number;
+    generationId: string;
+    metadata?: Record<string, unknown>;
+}
+
+export interface GenerationStatus {
+    id: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    url?: string;
+    error?: string;
+    createdAt: string;
+    completedAt?: string;
+}
+
+export interface UploadResult {
+    url: string;
+    key: string;
+    size: number;
+    mimetype: string;
 }

@@ -14,6 +14,9 @@ import {
     useCreateMeme,
 } from '@/hooks/queries';
 
+// Services
+import { uploadService } from '@/services';
+
 // Icons
 import iconBack from '@/assets/icons/icon-back.svg';
 import iconClose from '@/assets/icons/icon-close.svg';
@@ -58,7 +61,6 @@ export function CreateMemePage() {
     const location = useLocation();
     const state = location.state as LocationState | null;
 
-    // Determine initial step based on navigation state
     const getInitialStep = (): Step => {
         if (state?.flow === 'upload' && state.mediaUrl) {
             return 'post-form';
@@ -79,6 +81,8 @@ export function CreateMemePage() {
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiTemplate, setAiTemplate] = useState<AITemplate>('image');
     const [aiReferenceMedia, setAiReferenceMedia] = useState<SelectedMedia | null>(null);
+    const [isUploadingReference, setIsUploadingReference] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     // Post form state
     const [formData, setFormData] = useState<PostFormData>({
@@ -87,6 +91,9 @@ export function CreateMemePage() {
         visibility: 'public',
     });
     const [tagInput, setTagInput] = useState('');
+
+    // Power Up Modal state
+    const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
 
     // Modals
     const [showPowerUpModal, setShowPowerUpModal] = useState(false);
@@ -109,6 +116,7 @@ export function CreateMemePage() {
     const purchaseMutation = usePurchaseCredits();
 
     const credits = creditData?.credits ?? 0;
+    const bonkBalance = creditData?.bonkWalletBalance ?? 0;
 
     // Redirect if no valid state
     useEffect(() => {
@@ -116,6 +124,15 @@ export function CreateMemePage() {
             navigate(ROUTES.HOME);
         }
     }, [state, navigate]);
+
+    // Cleanup blob URLs on unmount
+    useEffect(() => {
+        return () => {
+            if (aiReferenceMedia?.previewUrl) {
+                URL.revokeObjectURL(aiReferenceMedia.previewUrl);
+            }
+        };
+    }, [aiReferenceMedia?.previewUrl]);
 
     // Handlers
     const handleBack = () => {
@@ -172,10 +189,40 @@ export function CreateMemePage() {
         }
 
         try {
+            let referenceMediaUrl: string | undefined;
+
+            // Upload reference media first if exists
+            if (aiReferenceMedia?.file) {
+                setIsUploadingReference(true);
+                setUploadProgress(0);
+
+                try {
+                    const uploadResult = await uploadService.uploadMedia(
+                        aiReferenceMedia.file,
+                        (percent) => setUploadProgress(percent)
+                    );
+                    referenceMediaUrl = uploadResult.mediaUrl;
+                } catch (uploadError) {
+                    console.error('Failed to upload reference media:', uploadError);
+                    setResultModal({
+                        isOpen: true,
+                        type: 'error',
+                        title: 'Upload Failed',
+                        message: 'Failed to upload reference media. Please try again.',
+                    });
+                    return;
+                } finally {
+                    setIsUploadingReference(false);
+                    setUploadProgress(0);
+                }
+            }
+
+            // Call AI generate with optional reference URL
             const result = await aiMutation.mutateAsync({
                 prompt: aiPrompt,
                 mediaType: aiTemplate === 'video' ? 'video' : 'image',
                 duration: aiTemplate === 'video' ? 10 : undefined,
+                referenceMediaUrl, // Pass the uploaded URL
             });
 
             setMediaUrl(result.url);
@@ -198,10 +245,32 @@ export function CreateMemePage() {
     };
 
     // ============ Power Up Modal ============
-    const handlePurchaseCredits = async (packageId: string) => {
+    const handleSelectPackage = (packageId: string) => {
+        setSelectedPackageId(packageId);
+    };
+
+    const handlePowerUpClick = async () => {
+        if (!selectedPackageId) return;
+
+        const selectedPkg = packagesData?.find(pkg => pkg.packageId === selectedPackageId);
+        if (!selectedPkg) return;
+
+        const requiredBonk = selectedPkg.bonkCost ?? 0;
+
+        if (bonkBalance < requiredBonk) {
+            setResultModal({
+                isOpen: true,
+                type: 'error',
+                title: 'Insufficient BONK Balance',
+                message: `You need ${requiredBonk.toLocaleString()} BONK but only have ${bonkBalance.toLocaleString()} BONK. Please add more BONK to your wallet.`,
+            });
+            return;
+        }
+
         try {
-            await purchaseMutation.mutateAsync({ packageId });
+            await purchaseMutation.mutateAsync({ packageId: selectedPackageId });
             setShowPowerUpModal(false);
+            setSelectedPackageId(null);
             setResultModal({
                 isOpen: true,
                 type: 'success',
@@ -289,6 +358,14 @@ export function CreateMemePage() {
         }
     };
 
+    // Compute button state
+    const isGenerating = aiMutation.isPending || isUploadingReference;
+    const getButtonText = () => {
+        if (isUploadingReference) return `Uploading... ${uploadProgress}%`;
+        if (aiMutation.isPending) return 'Cooking...';
+        return 'Cook Meme';
+    };
+
     // ============ Render AI Prompt Step ============
     const renderAIPromptStep = () => (
         <div className="create-ai-page">
@@ -340,6 +417,7 @@ export function CreateMemePage() {
                         <button
                             className="ai-add-media"
                             onClick={handleAddReferenceMedia}
+                            disabled={isGenerating}
                         >
                             + Add Image/Video
                         </button>
@@ -356,9 +434,18 @@ export function CreateMemePage() {
                             <button
                                 className="ai-reference-remove"
                                 onClick={handleRemoveReferenceMedia}
+                                disabled={isGenerating}
                             >
                                 ×
                             </button>
+                            {isUploadingReference && (
+                                <div className="ai-reference-progress">
+                                    <div
+                                        className="ai-reference-progress-bar"
+                                        style={{ width: `${uploadProgress}%` }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -380,9 +467,9 @@ export function CreateMemePage() {
                 <button
                     className="ai-cta"
                     onClick={handleCookMeme}
-                    disabled={!aiPrompt.trim() || aiMutation.isPending}
+                    disabled={!aiPrompt.trim() || isGenerating}
                 >
-                    {aiMutation.isPending ? 'Cooking...' : 'Cook Meme'}
+                    {getButtonText()}
                 </button>
             </div>
         </div>
@@ -497,85 +584,97 @@ export function CreateMemePage() {
     );
 
     // ============ Render Power Up Modal ============
-    const renderPowerUpModal = () => (
-        <div className={`power-modal ${showPowerUpModal ? 'open' : ''}`}>
-            <div className="power-sheet">
-                <header className="power-header">
-                    <span className="power-title">Power Up Your Meme Magic</span>
-                    <button className="icon-button" onClick={() => setShowPowerUpModal(false)}>
-                        <img src={iconClose} alt="" />
+    const renderPowerUpModal = () => {
+        const uniquePackages = (packagesData ?? [])
+            .filter((pkg, index, arr) =>
+                arr.findIndex(p => p.packageId === pkg.packageId) === index
+            )
+            .sort((a, b) => a.credits - b.credits);
+
+        return (
+            <div className={`power-modal ${showPowerUpModal ? 'open' : ''}`}>
+                <div className="power-sheet">
+                    <header className="power-header">
+                        <span className="power-title">Power Up Your Meme Magic</span>
+                        <button className="icon-button" onClick={() => {
+                            setShowPowerUpModal(false);
+                            setSelectedPackageId(null);
+                        }}>
+                            <img src={iconClose} alt="" />
+                        </button>
+                    </header>
+
+                    <div className="power-balances">
+                        <div className="power-balance">
+                            <span className="label">Credits:</span>
+                            <span className="badge green">
+                                <img src={iconPowerUp} alt="" />
+                                {credits}
+                            </span>
+                        </div>
+                        <div className="power-balance">
+                            <span className="label">BONK Balance:</span>
+                            <span className="badge yellow">
+                                <img src={iconBonk} alt="" />
+                                {bonkBalance.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="power-cards">
+                        {uniquePackages.map((pkg) => {
+                            const isSelected = selectedPackageId === pkg.packageId;
+                            const hasEnoughBonk = bonkBalance >= (pkg.bonkCost ?? 0);
+
+                            return (
+                                <button
+                                    key={pkg.packageId}
+                                    className={`power-card ${isSelected ? 'selected' : ''} ${!hasEnoughBonk ? 'insufficient' : ''}`}
+                                    onClick={() => handleSelectPackage(pkg.packageId)}
+                                >
+                                    <div className="power-head">
+                                        <img src={iconPowerUp} alt="" />
+                                    </div>
+                                    <span className="title">{pkg.credits} Credits</span>
+                                    <span className="price">
+                                        <img src={iconBonk} alt="" />
+                                        {pkg.bonkCost?.toLocaleString() ?? 0}
+                                    </span>
+                                    {!hasEnoughBonk && (
+                                        <span className="insufficient-label">Insufficient BONK</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <button
+                        className="power-cta"
+                        onClick={handlePowerUpClick}
+                        disabled={!selectedPackageId || purchaseMutation.isPending}
+                    >
+                        {purchaseMutation.isPending ? 'Processing...' : 'Power Up'}
                     </button>
-                </header>
-
-                <div className="power-balances">
-                    <div className="power-balance">
-                        <span className="label">Credits:</span>
-                        <span className="badge green">
-                            <img src={iconPowerUp} alt="" />
-                            {credits}
-                        </span>
-                    </div>
-                    <div className="power-balance">
-                        <span className="label">BONK Balance:</span>
-                        <span className="badge yellow">
-                            <img src={iconBonk} alt="" />
-                            {creditData?.bonkWalletBalance?.toLocaleString() ?? 0}
-                        </span>
-                    </div>
                 </div>
-
-                <div className="power-cards">
-                    {/* Filter unique packages by packageId */}
-                    {(packagesData ?? [])
-                        .filter((pkg, index, arr) =>
-                            arr.findIndex(p => p.packageId === pkg.packageId) === index
-                        )
-                        .sort((a, b) => a.credits - b.credits)
-                        .map((pkg) => (
-                            <button
-                                key={pkg.packageId}
-                                className="power-card"
-                                onClick={() => handlePurchaseCredits(pkg.packageId)}
-                                disabled={purchaseMutation.isPending}
-                            >
-                                <div className="power-head">
-                                    <img src={iconPowerUp} alt="" />
-                                </div>
-                                <span className="title">{pkg.credits} Credits</span>
-                                <span className="price">
-                                    <img src={iconBonk} alt="" />
-                                    {pkg.bonkCost?.toLocaleString() ?? 0}
-                                </span>
-                            </button>
-                        ))}
-                </div>
-
-                <button className="power-cta" onClick={() => setShowPowerUpModal(false)}>
-                    Power Up
-                </button>
             </div>
-        </div>
-    );
+        );
+    };
 
     // ============ Main Render ============
     return (
         <div className="create-meme-shell">
-            {/* Steps */}
             {step === 'ai-prompt' && renderAIPromptStep()}
             {step === 'ai-result' && renderAIResultStep()}
             {step === 'post-form' && renderPostFormStep()}
 
-            {/* Power Up Modal */}
             {renderPowerUpModal()}
 
-            {/* AI Reference Media Picker */}
             <MediaPickerModal
                 isOpen={showAIMediaPicker}
                 onClose={() => setShowAIMediaPicker(false)}
                 onNext={handleAIMediaSelected}
             />
 
-            {/* Visibility Sheet */}
             {showVisibilitySheet && (
                 <div className="visibility-modal open" onClick={() => setShowVisibilitySheet(false)}>
                     <div className="visibility-sheet" onClick={e => e.stopPropagation()}>
@@ -598,7 +697,6 @@ export function CreateMemePage() {
                 </div>
             )}
 
-            {/* Discard Modal */}
             {showDiscardModal && (
                 <div className="discard-modal open">
                     <div className="discard-sheet">
@@ -609,7 +707,7 @@ export function CreateMemePage() {
                             </button>
                         </header>
                         <p className="discard-body">
-                            Lorem ipsum is placeholder text commonly used in the graphic.
+                            Are you sure you want to discard this post? Your changes will be lost.
                         </p>
                         <div className="discard-actions">
                             <button className="discard-btn confirm" onClick={handleDiscard}>
@@ -623,7 +721,6 @@ export function CreateMemePage() {
                 </div>
             )}
 
-            {/* Result Modal */}
             {resultModal.isOpen && (
                 <div className="result-modal open">
                     <div className="result-sheet">

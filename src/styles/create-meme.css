@@ -779,6 +779,21 @@
     box-shadow: 0 2px 0 rgba(26, 140, 0, 0.28);
 }
 
+.power-card.selected {
+    border: 2px solid #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.power-card.insufficient {
+    opacity: 0.6;
+}
+
+.power-card .insufficient-label {
+    color: #f44336;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
 /* ============ Visibility Modal ============ */
 .visibility-modal {
     position: fixed;
@@ -841,9 +856,11 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.28);
     display: none;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     z-index: 250;
+    padding: 0;
+    margin: 0;
 }
 
 .discard-modal.open {
@@ -851,11 +868,12 @@
 }
 
 .discard-sheet {
-    width: min(400px, 90vw);
+    width: 100%;
     background: #fff;
-    border-radius: 18px;
+    border-radius: 20px 20px 0 0;
     overflow: hidden;
     animation: slideUp 180ms ease;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .discard-header {
