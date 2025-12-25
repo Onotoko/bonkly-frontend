@@ -1,0 +1,232 @@
+/* ============================================
+   PROFILE SHEET - Bottom Sheet for User Profile
+   ============================================ */
+
+.profile-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+}
+
+.profile-sheet {
+    width: 100%;
+    max-width: 540px;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.16);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: profileSheetSlideUp 250ms ease;
+}
+
+@keyframes profileSheetSlideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.profile-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f2f6;
+    flex-shrink: 0;
+}
+
+.profile-sheet-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-sheet-title .title-label {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1f1f1f;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+}
+
+.profile-sheet-title .title-handle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #8a8f99;
+}
+
+.profile-sheet-header .icon-button {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.profile-sheet-header .icon-button img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Content */
+.profile-sheet-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+/* User Info */
+.profile-sheet-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px 20px;
+    text-align: center;
+}
+
+.profile-sheet-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    background: #f0f2f6;
+}
+
+.profile-sheet-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-sheet-name {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fe0405;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+}
+
+.profile-sheet-bio {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #666c75;
+    line-height: 1.4;
+    max-width: 260px;
+}
+
+.profile-sheet-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #666c75;
+}
+
+.profile-sheet-friend {
+    color: #8a8f99;
+}
+
+/* Follow Button */
+.profile-sheet-follow {
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: #fe0405;
+    color: #fff;
+    min-width: 100px;
+}
+
+.profile-sheet-follow:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.profile-sheet-follow:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Follow Back state - purple bg */
+.profile-sheet-follow.follow-back {
+    background: #7A00CF;
+    color: #fff;
+    border: none;
+}
+
+/* Unfollow state - white bg with border */
+.profile-sheet-follow.following {
+    background: #fff;
+    color: #2d3038;
+    border: 1px solid #d3d8e0;
+}
+
+.profile-sheet-follow.following:hover:not(:disabled) {
+    background: #f5f6f7;
+}
+
+/* Memes Grid - 3 rows max, square items */
+.profile-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    /* 3 rows of square items based on width */
+    aspect-ratio: 1 / 1;
+}
+
+.profile-sheet-meme {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    cursor: pointer;
+    background: #e5e7eb;
+}
+
+.profile-sheet-meme img,
+.profile-sheet-meme video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-sheet-meme:hover {
+    opacity: 0.9;
+}
+
+/* Loading & Error States */
+.profile-sheet-loading,
+.profile-sheet-error,
+.profile-sheet-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #8a8f99;
+    font-size: 14px;
+}
+
+.profile-sheet-error button {
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: #fe0405;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+}

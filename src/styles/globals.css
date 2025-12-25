@@ -12,6 +12,10 @@
 @import './meme-detail.css';
 @import './create-meme.css';
 @import './media-picker-modal.css';
+@import './profile.css';
+@import './user-profile.css';
+@import './terms.css';
+@import './profile-sheet.css';
 
 /* Tailwind */
 @tailwind base;

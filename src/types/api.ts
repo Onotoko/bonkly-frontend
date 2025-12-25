@@ -503,3 +503,15 @@ export interface UploadResult {
     size: number;
     mimetype: string;
 }
+
+export interface PublicUserProfile {
+    id: string;
+    username: string;
+    displayName: string;
+    profilePicture?: string;
+    bio?: string;
+    followerCount: number;
+    followingCount: number;
+    isFollowing: boolean;
+    isFollowingYou: boolean;
+}

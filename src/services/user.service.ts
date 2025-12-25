@@ -1,8 +1,11 @@
+// services/user.service.ts
+
 import { api } from './api';
 import type {
     UserProfile,
     UserBalances,
     UpdateProfileRequest,
+    PublicUserProfile,
 } from '../types/api';
 
 export const userService = {
@@ -27,8 +30,8 @@ export const userService = {
 
     /**
      * GET /users/:username
-     * Get public profile by username
+     * Get public profile by username (includes social info)
      */
     getByUsername: (username: string) =>
-        api.get<UserProfile>(`/users/${username}`, false),
+        api.get<PublicUserProfile>(`/users/${username}`),
 };

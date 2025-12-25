@@ -3,6 +3,7 @@
     max-width: 540px;
     margin: 0 auto;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 16px 16px 100px;
     background: #fff;
     box-sizing: border-box;
@@ -14,9 +15,9 @@
 
 /* ============ Profile Header ============ */
 .profile-top {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     padding-bottom: 16px;
 }
 
@@ -25,19 +26,20 @@
     font-size: 20px;
     font-weight: 800;
     color: #1f1f1f;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
 }
 
-/* ============ Profile Hero ============ */
+/* ============ Profile Hero - Horizontal Layout ============ */
 .profile-hero {
-    display: grid;
-    gap: 14px;
-    align-items: center;
-    padding: 20px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 8px 0 16px;
 }
 
 .profile-avatar {
-    width: 96px;
-    height: 96px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
@@ -49,76 +51,91 @@
     object-fit: cover;
 }
 
-.profile-meta {
+.profile-info {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-}
-
-.profile-name-group {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .profile-name {
     font-size: 16px;
     font-weight: 800;
     color: #fe0405;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
 }
 
 .profile-handle {
     color: #8a8f99;
     font-weight: 500;
-    font-size: 12px;
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
 .profile-stats {
     display: flex;
-    gap: 20px;
-    align-items: center;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.profile-stats .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
 }
 
 .profile-stats .stat-value {
     font-weight: 700;
-    color: #222222;
+    color: #1f1f1f;
     font-size: 15px;
-    padding-bottom: 3px;
 }
 
 .profile-stats .stat-label {
-    color: #6a6f78;
+    color: #8a8f99;
     font-weight: 500;
     font-size: 12px;
 }
 
-/* ============ Profile Bio ============ */
-.profile-bio {
+/* ============ Profile Bio Section ============ */
+.profile-bio-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 16px;
+}
+
+.profile-bio-text {
+    margin: 0;
     color: #333;
     font-weight: 500;
-    display: grid;
-    gap: 10px;
     font-size: 14px;
     line-height: 1.5;
 }
 
-.add-bio {
-    margin: 10px auto 0 0;
-    display: flex;
-    padding: 8px 12px;
-    justify-content: center;
+.profile-bio-empty {
+    margin: 0;
+    color: #8a8f99;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.add-bio-btn {
+    display: inline-flex;
     align-items: center;
     gap: 4px;
+    padding: 8px 14px;
     border-radius: 30px;
     border: 1px solid #D3D8E0;
     background: #F2F4F8;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 14px;
     color: #333;
     cursor: pointer;
+    width: fit-content;
 }
 
-.add-bio .add-icon {
+.add-bio-icon {
     color: #fe0405;
     font-weight: 800;
 }
@@ -129,23 +146,27 @@
     justify-content: space-around;
     align-items: center;
     border-bottom: 1px solid #e0e0e0;
-    margin: 20px -16px 3px;
+    margin: 0 -16px;
 }
 
 .tab-item {
+    flex: 1;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 12px 24px;
+    padding: 14px 24px;
     border-bottom: 3px solid transparent;
     transition: border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tab-item img {
     width: 24px;
     height: 24px;
     object-fit: contain;
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .tab-item.active {
@@ -169,6 +190,7 @@
     aspect-ratio: 1 / 1;
     object-fit: cover;
     display: block;
+    cursor: pointer;
 }
 
 /* ============ Profile Empty State ============ */
@@ -176,17 +198,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
+    gap: 16px;
     padding: 80px 40px;
-    color: #4a4f58;
-    font-weight: 700;
+    flex: 1;
 }
 
-.profile-empty img {
-    width: 72px;
-    height: 72px;
+.profile-empty .empty-icon {
+    width: 80px;
+    height: 80px;
     object-fit: contain;
-    filter: grayscale(0.1);
 }
 
 .profile-empty p {
@@ -198,21 +219,19 @@
     color: #6a6f78;
 }
 
-.create-meme {
-    border: 2px solid #d2d8e0;
+.create-meme-btn {
+    border: 2px solid #e6e8ed;
     background: #fff;
-    border-radius: 14px;
-    padding: 10px 18px;
-    font-weight: 800;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-weight: 700;
+    font-size: 14px;
     color: #fe0405;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.18);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.06);
 }
 
-/* ============ Settings Modal ============ */
+/* ============ Settings Modal - Bottom Sheet ============ */
 .settings-modal {
     position: fixed;
     inset: 0;
@@ -235,15 +254,14 @@
     box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.18);
     overflow: hidden;
     animation: slideUp 180ms ease;
-    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .settings-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px 18px;
+    justify-content: space-between;
+    padding: 16px 20px;
     border-bottom: 1px solid #eef0f4;
 }
 
@@ -259,12 +277,11 @@
 }
 
 .settings-item {
-    display: grid;
-    grid-template-columns: auto 1fr;
+    display: flex;
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 14px 18px;
+    padding: 16px 20px;
     border: none;
     background: #fff;
     cursor: pointer;
@@ -275,20 +292,27 @@
     text-align: left;
 }
 
+.settings-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .settings-icon img {
     width: 22px;
     height: 22px;
     object-fit: contain;
 }
 
-/* ============ Edit Profile Modal ============ */
+/* ============ Edit Profile Modal - Full Screen ============ */
 .edit-profile-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.28);
+    background: #fff;
     display: none;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     z-index: 110;
 }
 
@@ -300,22 +324,22 @@
     width: 100%;
     max-width: 540px;
     height: 100%;
+    margin: 0 auto;
     background: #fff;
     display: flex;
     flex-direction: column;
 }
 
 .edit-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 16px;
+    justify-content: space-between;
+    padding: 16px 20px;
     border-bottom: 1px solid #e6e8ed;
 }
 
 .edit-title {
-    font-weight: 800;
+    font-weight: 700;
     font-size: 16px;
     color: #22272E;
 }
@@ -325,8 +349,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 48px;
-    padding: 20px 16px;
+    gap: 40px;
+    padding: 32px 20px;
     overflow-y: auto;
 }
 
@@ -334,12 +358,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
 }
 
 .edit-avatar {
-    width: 160px;
-    height: 160px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     overflow: hidden;
 }
@@ -350,18 +374,22 @@
     object-fit: cover;
 }
 
-.edit-photo {
-    border: 1px solid #cfd5de;
-    background: #f4f7fb;
+.edit-photo-btn {
+    border: 1px solid #d3d8e0;
+    background: #fff;
     border-radius: 32px;
-    padding: 10px 14px;
-    font-weight: 700;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 14px;
     color: #333;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     cursor: pointer;
-    font-size: 14px;
+}
+
+.edit-photo-btn span {
+    color: #333;
 }
 
 .edit-fields {
@@ -371,80 +399,98 @@
     gap: 12px;
 }
 
-.edit-input,
-.edit-username input {
+.edit-input {
     width: 100%;
-    border: 1px solid #dfe3e8;
+    border: 1px solid #e6e8ed;
     border-radius: 12px;
-    padding: 14px;
+    padding: 14px 16px;
     font-size: 14px;
     outline: none;
-    background: #f7f9fc;
+    background: #fff;
     font-family: "Inter", sans-serif;
+    color: #1f1f1f;
 }
 
-.edit-username {
+.edit-input::placeholder {
+    color: #9a9fa8;
+}
+
+.edit-username-field {
     width: 100%;
     position: relative;
 }
 
-.edit-username .edit-hint {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8a8f99;
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.edit-bio {
+.edit-username-field input {
     width: 100%;
-    min-height: 120px;
-    border: 1px solid #dfe3e8;
+    border: 1px solid #e6e8ed;
     border-radius: 12px;
-    padding: 14px;
+    padding: 14px 16px;
+    padding-right: 80px;
     font-size: 14px;
     outline: none;
     background: #f7f9fc;
+    font-family: "Inter", sans-serif;
+    color: #9a9fa8;
+}
+
+.edit-hint {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9a9fa8;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.edit-bio-input {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #e6e8ed;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
     resize: none;
     font-family: "Inter", sans-serif;
+    color: #1f1f1f;
 }
 
-.edit-actions {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 16px;
+.edit-bio-input::placeholder {
+    color: #9a9fa8;
 }
 
-.edit-save {
+.edit-footer {
+    padding: 16px 20px 32px;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+
+.edit-save-btn {
     width: 100%;
     background: #fe0405;
     color: #fff;
     border: none;
     border-radius: 999px;
-    padding: 14px 20px;
+    padding: 16px 20px;
     font-weight: 800;
-    font-size: 18px;
+    font-size: 16px;
     box-shadow: 0 4px 0 rgba(180, 0, 0, 0.28);
     cursor: pointer;
-    margin: 12px 0 20px;
 }
 
-.edit-save:disabled {
+.edit-save-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-/* ============ Account Modal ============ */
+/* ============ Account Modal - Full Screen ============ */
 .account-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.28);
+    background: #fff;
     display: none;
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
     z-index: 120;
 }
 
@@ -456,18 +502,17 @@
     width: 100%;
     max-width: 540px;
     height: 100%;
+    margin: 0 auto;
     background: #fff;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
 }
 
 .account-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px 18px;
+    justify-content: space-between;
+    padding: 16px 20px;
     border-bottom: 1px solid #e6e8ed;
 }
 
@@ -478,22 +523,20 @@
 }
 
 .account-list {
-    padding: 8px 0;
     display: flex;
     flex-direction: column;
 }
 
 .account-row {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
-    padding: 14px 18px;
+    justify-content: space-between;
+    padding: 16px 20px;
     border: none;
     background: #fff;
     border-bottom: 1px solid #f0f2f5;
     font-weight: 500;
-    color: #4a4f58;
     font-size: 14px;
 }
 
@@ -507,16 +550,17 @@
 }
 
 .account-value {
-    color: #8a8f99;
+    color: #9a9fa8;
 }
 
 .account-arrow {
     width: 16px;
     height: 16px;
     object-fit: contain;
+    opacity: 0.5;
 }
 
-/* ============ Logout Modal ============ */
+/* ============ Logout Modal - Bottom Sheet ============ */
 .logout-modal {
     position: fixed;
     inset: 0;
@@ -542,11 +586,10 @@
 }
 
 .logout-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px 18px;
+    justify-content: space-between;
+    padding: 16px 20px;
     border-bottom: 1px solid #e6e8ed;
 }
 
@@ -557,40 +600,46 @@
 }
 
 .logout-body {
-    padding: 24px 18px 30px;
+    padding: 24px 20px 32px;
     text-align: center;
     color: #6f7580;
     font-weight: 500;
+    font-size: 15px;
 }
 
 .logout-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    padding: 12px 18px 48px;
+    padding: 0 20px 32px;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
 }
 
 .logout-btn {
     width: 100%;
     border-radius: 999px;
     padding: 14px;
-    font-weight: 800;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 15px;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.18);
 }
 
 .logout-cancel {
-    background: #f1f3f6;
+    background: #fff;
     color: #2d3038;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+    border: 1px solid #d3d8e0;
 }
 
 .logout-confirm {
-    background: #7c19ff;
+    background: #6f19ff;
     color: #fff;
-    box-shadow: 0 4px 0 rgba(80, 0, 180, 0.28);
+    box-shadow: 0 4px 0 rgba(66, 0, 140, 0.28);
+}
+
+.logout-confirm:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(66, 0, 140, 0.28);
 }
 
 /* ============ Icon Button ============ */
@@ -600,6 +649,9 @@
     color: #7c8593;
     cursor: pointer;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .icon-button img {
@@ -610,8 +662,8 @@
 }
 
 .profile-top .icon-button img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
 }
 
 /* ============ Animation ============ */
@@ -627,7 +679,307 @@
     }
 }
 
-/* ============ No Scroll ============ */
-body.no-scroll {
+/* ============ User Profile Shell ============ */
+.user-profile-shell {
+    max-width: 540px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #fff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============ User Profile Header ============ */
+.user-profile-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #e6e8ed;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.user-profile-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-profile-header-name {
+    font-weight: 800;
+    font-size: 16px;
+    color: #1f1f1f;
+}
+
+.user-profile-header-handle {
+    font-size: 12px;
+    color: #8a8f99;
+}
+
+/* ============ User Profile Hero ============ */
+.user-profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 16px;
+}
+
+.user-profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
     overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-profile-name {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fe0405;
+}
+
+.user-profile-handle {
+    margin: 0;
+    font-size: 14px;
+    color: #8a8f99;
+}
+
+.user-profile-bio {
+    margin: 0;
+    padding: 0 16px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #4a4f58;
+}
+
+.user-profile-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.user-profile-stat {
+    font-size: 14px;
+    color: #666c75;
+}
+
+.user-profile-stat strong {
+    color: #1f1f1f;
+    font-weight: 700;
+}
+
+/* ============ User Profile Actions ============ */
+.user-profile-actions {
+    padding: 0 16px 16px;
+}
+
+.user-profile-follow {
+    width: 100%;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    background: #fe0405;
+    color: #fff;
+    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.28);
+    transition: all 0.2s ease;
+}
+
+.user-profile-follow:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.user-profile-follow.following {
+    background: #f3f5f7;
+    color: #2f3339;
+    border: 1px solid #dfe3e8;
+    box-shadow: none;
+}
+
+/* ============ User Profile Tabs ============ */
+.user-profile-tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.user-profile-tabs .tab-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 12px 32px;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.user-profile-tabs .tab-item img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    opacity: 0.5;
+}
+
+.user-profile-tabs .tab-item.active {
+    border-bottom-color: #fe0405;
+}
+
+.user-profile-tabs .tab-item.active img {
+    opacity: 1;
+}
+
+/* ============ User Profile Grid ============ */
+.user-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+}
+
+.user-profile-grid img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+}
+
+/* ============ User Profile Empty ============ */
+.user-profile-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 40px;
+    flex: 1;
+}
+
+.user-profile-empty img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    opacity: 0.5;
+}
+
+.user-profile-empty p {
+    margin: 0;
+    font-size: 14px;
+    color: #8a8f99;
+    text-align: center;
+}
+
+/* ============ Loading & Error States ============ */
+.user-profile-loading,
+.user-profile-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 40px;
+    color: #8a8f99;
+    font-size: 16px;
+}
+
+/* ============ Standalone Edit Profile Page ============ */
+.edit-profile-shell {
+    max-width: 540px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============ Standalone Settings Page ============ */
+.settings-shell {
+    max-width: 540px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-page-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #e6e8ed;
+}
+
+.settings-page-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1f1f1f;
+    text-align: center;
+}
+
+.settings-page-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Add these styles to profile.css */
+
+/* Upload error message */
+.edit-photo-error {
+    margin: 0;
+    color: #fe0405;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Uploading state for photo button */
+.edit-photo-btn.uploading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Small spinner for inline use */
+.spinner.small {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }

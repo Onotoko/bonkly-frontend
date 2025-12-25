@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
-import { LaughSheet, CommentSheet, MoreSheet, ShareSheet } from '@/components/meme';
+import { LaughSheet, CommentSheet, MoreSheet, ShareSheet, CreateMemeSheet } from '@/components/meme';
+import { ProfileSheet } from '@/components/profile';
 import { ResultModal } from '@/components/ui';
-import { CreateMemeSheet } from '@/components/meme';
 
 // Hooks
 import { useFeedTrending, useFeedNew, useFeedForYou, useLoveMeme, useLaughMeme } from '@/hooks/queries';
-
-// Types
-// import type { Meme } from '@/types/api';
 import { useToggleSaveMeme } from '@/hooks/queries';
 
 // Icons
@@ -60,6 +57,13 @@ export function HomePage() {
     const loveMutation = useLoveMeme();
     const laughMutation = useLaughMeme();
     const saveMutation = useToggleSaveMeme();
+
+    // Profile Sheet state
+    const [profileSheet, setProfileSheet] = useState<{ isOpen: boolean; username: string }>({
+        isOpen: false,
+        username: '',
+    });
+
     // Laugh Sheet state
     const [laughSheet, setLaughSheet] = useState<{ isOpen: boolean; handle: string; memeId: string }>({
         isOpen: false,
@@ -85,11 +89,10 @@ export function HomePage() {
     });
 
     // Share Sheet state
-
     const [shareSheet, setShareSheet] = useState<{
         isOpen: boolean;
         memeId: string;
-        caption?: string
+        caption?: string;
     }>({
         isOpen: false,
         memeId: '',
@@ -111,8 +114,16 @@ export function HomePage() {
 
     const [showCreateSheet, setShowCreateSheet] = useState(false);
 
+    // Profile Sheet handlers
+    const openProfileSheet = (username: string) => {
+        setProfileSheet({ isOpen: true, username });
+    };
 
-    // Handlers
+    const closeProfileSheet = () => {
+        setProfileSheet({ isOpen: false, username: '' });
+    };
+
+    // Laugh Sheet handlers
     const openLaughSheet = (handle: string, memeId: string, hasLaughed: boolean) => {
         if (hasLaughed) return;
         setLaughSheet({ isOpen: true, handle, memeId });
@@ -183,10 +194,7 @@ export function HomePage() {
                             next.delete(memeId);
                             return next;
                         });
-                        showSuccessModal(
-                            'Thank you!',
-                            `You've sent ${data.bonkSpent} BONK to ${handle}!`
-                        );
+                        showSuccessModal('Thank you!', `You've sent ${data.bonkSpent} BONK to ${handle}!`);
                     }, 1500);
                 },
                 onError: (error: unknown) => {
@@ -196,7 +204,6 @@ export function HomePage() {
                         return next;
                     });
 
-                    // Extract error message from API response
                     let errorMessage = 'Please try again.';
                     if (error && typeof error === 'object' && 'response' in error) {
                         const apiError = error as { response?: { data?: { message?: string } } };
@@ -222,7 +229,6 @@ export function HomePage() {
         console.log('Report:', moreSheet.memeId);
         closeMoreSheet();
     };
-
 
     // Format number helper
     const formatNumber = (num: number): string => {
@@ -250,12 +256,7 @@ export function HomePage() {
     return (
         <div className="home-shell">
             {/* Background ornament */}
-            <img
-                src={homeOrnament}
-                alt=""
-                className="home-ornament"
-                aria-hidden="true"
-            />
+            <img src={homeOrnament} alt="" className="home-ornament" aria-hidden="true" />
 
             {/* Header */}
             <header className="home-header">
@@ -300,12 +301,12 @@ export function HomePage() {
                     <article key={meme.id} className="feed-card">
                         {/* Card Header */}
                         <header className="feed-card__header">
-                            <div className="feed-author">
+                            <div
+                                className="feed-author"
+                                onClick={() => openProfileSheet(meme.creator.username)}
+                            >
                                 <div className="feed-avatar">
-                                    <img
-                                        src={meme.creator.profilePicture || avatarDefault}
-                                        alt=""
-                                    />
+                                    <img src={meme.creator.profilePicture || avatarDefault} alt="" />
                                 </div>
                                 <div className="author-meta">
                                     <span className="author-handle">@{meme.creator.username}</span>
@@ -340,7 +341,9 @@ export function HomePage() {
                             {meme.tags.length > 0 && (
                                 <div className="feed-tags">
                                     {meme.tags.map((tag, i) => (
-                                        <span key={i} className="feed-tag">#{tag}</span>
+                                        <span key={i} className="feed-tag">
+                                            #{tag}
+                                        </span>
                                     ))}
                                 </div>
                             )}
@@ -356,7 +359,9 @@ export function HomePage() {
                         <footer className="feed-actions">
                             <button
                                 className={`feed-action ${meme.hasLaughed ? 'active' : ''}`}
-                                onClick={() => openLaughSheet(`@${meme.creator.username}`, meme.id, meme.hasLaughed)}
+                                onClick={() =>
+                                    openLaughSheet(`@${meme.creator.username}`, meme.id, meme.hasLaughed)
+                                }
                             >
                                 <img src={meme.hasLaughed ? iconLaughActive : iconLaughDefault} alt="" />
                                 <span>{formatNumber(meme.laughCount)}</span>
@@ -379,7 +384,6 @@ export function HomePage() {
                                 <img src={iconShareDefault} alt="" />
                                 <span>{formatNumber(meme.shareCount)}</span>
                             </button>
-
                         </footer>
                     </article>
                 ))}
@@ -403,6 +407,13 @@ export function HomePage() {
                 </div>
                 <span className="fab-label">+ Post Meme</span>
             </button>
+
+            {/* Profile Sheet */}
+            <ProfileSheet
+                isOpen={profileSheet.isOpen}
+                onClose={closeProfileSheet}
+                username={profileSheet.username}
+            />
 
             <CommentSheet
                 isOpen={commentSheet.isOpen}
@@ -445,10 +456,7 @@ export function HomePage() {
                 onPrimary={closeResultModal}
             />
 
-            <CreateMemeSheet
-                isOpen={showCreateSheet}
-                onClose={() => setShowCreateSheet(false)}
-            />
+            <CreateMemeSheet isOpen={showCreateSheet} onClose={() => setShowCreateSheet(false)} />
         </div>
     );
 }
