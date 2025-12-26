@@ -62,7 +62,8 @@ export function PowerUpSheet({
                 </header>
 
                 <div className="power-modal-body">
-                    <div className="power-balances">
+                    {/* Balances - 2 columns */}
+                    <div className="power-balances-row">
                         <div className="power-balance-item">
                             <span className="power-balance-label">Laugh Power Balance</span>
                             <span className="power-badge yellow">
@@ -79,6 +80,7 @@ export function PowerUpSheet({
                         </div>
                     </div>
 
+                    {/* Input */}
                     <input
                         type="number"
                         className="power-input"
@@ -88,16 +90,19 @@ export function PowerUpSheet({
                         disabled={isLoading}
                     />
 
-                    <div className="power-copy">
-                        <p>
-                            <strong>1 BONK → 15 dBONK</strong>
-                        </p>
-                        <p>
-                            Powering up converts BONK into Laugh Power (dBONK), increasing your
-                            influence.
-                        </p>
+                    {/* Conversion Rate */}
+                    <div className="power-rate">
+                        <span>1 BONK</span>
+                        <span className="power-rate-arrow">→</span>
+                        <span>15 dBONK</span>
                     </div>
 
+                    {/* Description */}
+                    <p className="power-description">
+                        Powering up converts BONK into Laugh Power (dBONK), increasing your influence.
+                    </p>
+
+                    {/* CTA */}
                     <button
                         className="power-cta"
                         onClick={handleSubmit}

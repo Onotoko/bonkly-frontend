@@ -38,7 +38,7 @@ export function RewardsList({
         );
     }
 
-    // Build rewards array
+    // Build rewards array - mock multiple items like design
     const rewards: Array<{
         id: string;
         title: string;
@@ -49,7 +49,7 @@ export function RewardsList({
     if (pendingRewards.creatorRewards > 0) {
         rewards.push({
             id: 'creator',
-            title: 'Creator Rewards',
+            title: 'Lorem ipsum is placeholder...',
             amount: pendingRewards.creatorRewards,
             claimed: false,
         });
@@ -58,7 +58,7 @@ export function RewardsList({
     if (pendingRewards.curatorRewards > 0) {
         rewards.push({
             id: 'curator',
-            title: 'Curation Rewards',
+            title: 'Lorem ipsum is placeholder...',
             amount: pendingRewards.curatorRewards,
             claimed: false,
         });
@@ -68,7 +68,7 @@ export function RewardsList({
     if (rewards.length === 0 && pendingRewards.totalPending > 0) {
         rewards.push({
             id: 'total',
-            title: 'Pending Rewards',
+            title: 'Lorem ipsum is placeholder...',
             amount: pendingRewards.totalPending,
             claimed: false,
         });

@@ -60,12 +60,10 @@ export function LaughPowerSheet({
                             Your Laugh Power increases your influence.
                         </p>
                         <p>
-                            When you Power Up, you lock BONK to boost your Laugh Power which is
-                            dBonk.
+                            When you Power Up, you lock BONK to boost your Laugh Power which is dBonk.
                         </p>
                         <p>
-                            When you Power Down, your locked dBONK slowly converts back into
-                            withdrawable BONK over 8 weeks, which is added to your wallet.
+                            When you Power Down, your locked dBONK slowly converts back into withdrawable BONK over 8 weeks, which is added to your wallet.
                         </p>
                     </div>
 

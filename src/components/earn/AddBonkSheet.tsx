@@ -3,23 +3,37 @@ import { useState } from 'react';
 // Icons
 import iconClose from '@/assets/icons/icon-close.svg';
 import iconWallet from '@/assets/icons/icon-wallet.svg';
+import iconMemoSrc from '@/assets/icons/icon-memo.svg';
 
 interface AddBonkSheetProps {
     isOpen: boolean;
     onClose: () => void;
     depositAddress: string;
+    memo?: string;
 }
 
-export function AddBonkSheet({ isOpen, onClose, depositAddress }: AddBonkSheetProps) {
-    const [copied, setCopied] = useState(false);
+export function AddBonkSheet({ isOpen, onClose, depositAddress, memo }: AddBonkSheetProps) {
+    const [copiedAddress, setCopiedAddress] = useState(false);
+    const [copiedMemo, setCopiedMemo] = useState(false);
 
     if (!isOpen) return null;
 
-    const handleCopy = async () => {
+    const handleCopyAddress = async () => {
         try {
             await navigator.clipboard.writeText(depositAddress);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            setCopiedAddress(true);
+            setTimeout(() => setCopiedAddress(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    const handleCopyMemo = async () => {
+        if (!memo) return;
+        try {
+            await navigator.clipboard.writeText(memo);
+            setCopiedMemo(true);
+            setTimeout(() => setCopiedMemo(false), 2000);
         } catch (err) {
             console.error('Failed to copy:', err);
         }
@@ -33,7 +47,7 @@ export function AddBonkSheet({ isOpen, onClose, depositAddress }: AddBonkSheetPr
 
     const truncateAddress = (addr: string) => {
         if (addr.length <= 20) return addr;
-        return `${addr.slice(0, 12)}...${addr.slice(-8)}`;
+        return `${addr.slice(0, 10)}...${addr.slice(-8)}`;
     };
 
     return (
@@ -47,7 +61,8 @@ export function AddBonkSheet({ isOpen, onClose, depositAddress }: AddBonkSheetPr
                 </header>
 
                 <div className="add-modal-body">
-                    <div>
+                    {/* Address */}
+                    <div className="add-field-group">
                         <p className="add-label">Send BONK to this address:</p>
                         <div className="add-address-row">
                             <span className="add-address-icon">
@@ -56,13 +71,29 @@ export function AddBonkSheet({ isOpen, onClose, depositAddress }: AddBonkSheetPr
                             <span className="add-address-text" title={depositAddress}>
                                 {truncateAddress(depositAddress)}
                             </span>
-                            <button className="add-copy-btn" onClick={handleCopy}>
-                                {copied ? 'Copied!' : 'Copy Address'}
+                            <button className="add-copy-btn" onClick={handleCopyAddress}>
+                                {copiedAddress ? 'Copied!' : 'Copy Address'}
                             </button>
                         </div>
                     </div>
 
-                    <div>
+                    {/* Memo */}
+                    <div className="add-field-group">
+                        <div className="add-address-row">
+                            <span className="add-address-icon">
+                                <img src={iconMemoSrc} alt="" />
+                            </span>
+                            <span className="add-address-text">
+                                {memo || '{{unique}}'}
+                            </span>
+                            <button className="add-copy-btn" onClick={handleCopyMemo}>
+                                {copiedMemo ? 'Copied!' : 'Copy Memo'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* How this works */}
+                    <div className="add-field-group">
                         <p className="add-how-title">How this works:</p>
                         <ul className="add-how-list">
                             <li>Send BONK to the address above</li>

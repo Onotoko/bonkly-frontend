@@ -60,7 +60,8 @@ export function PowerDownSheet({
                 </header>
 
                 <div className="power-modal-body">
-                    <div className="power-balance-item">
+                    {/* Balance - Centered */}
+                    <div className="power-balance-center">
                         <span className="power-balance-label">Laugh Power Balance</span>
                         <span className="power-badge yellow">
                             <img src={iconBonk} alt="" />
@@ -68,6 +69,7 @@ export function PowerDownSheet({
                         </span>
                     </div>
 
+                    {/* Input */}
                     <input
                         type="number"
                         className="power-input"
@@ -77,15 +79,15 @@ export function PowerDownSheet({
                         disabled={isLoading}
                     />
 
-                    <div className="power-copy">
-                        <p>
-                            When you Power Down, the amount you choose begins unlocking over{' '}
-                            <strong>8 weeks</strong>. Each week, <strong>1/8</strong> of the amount
-                            becomes available in your Earn Wallet as BONK. You can cancel the Power
-                            Down anytime.
-                        </p>
-                    </div>
+                    {/* Description */}
+                    <p className="power-description">
+                        When you Power Down, the amount you choose begins unlocking over{' '}
+                        <strong>8 weeks</strong>. Each week, <strong>1/8</strong> of the amount
+                        becomes available in your Earn Wallet as BONK. You can cancel the Power
+                        Down anytime
+                    </p>
 
+                    {/* CTA */}
                     <button
                         className="power-cta"
                         onClick={handleSubmit}

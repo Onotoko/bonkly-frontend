@@ -20,7 +20,6 @@ import {
     useStartPowerDown,
 } from '@/hooks/queries/useWallet';
 import { usePendingRewards, useClaimRewards } from '@/hooks/queries/useRewards';
-// import { usePowerUp } from '@/hooks/queries/useWallet';
 
 // Icons
 import iconBonk from '@/assets/icons/icon-bonk.png';
@@ -60,7 +59,6 @@ export function EarnPage() {
     // Mutations
     const withdrawMutation = useRequestWithdraw();
     const claimMutation = useClaimRewards();
-    // const powerUpMutation = usePowerUp();
     const powerDownMutation = useStartPowerDown();
 
     // Derived data
@@ -130,7 +128,6 @@ export function EarnPage() {
     };
 
     const handlePowerUp = (amount: number) => {
-        // TODO: Implement when usePowerUp hook is ready
         console.log('Power up:', amount);
         setShowPowerUp(false);
         setShowLaughPower(false);
@@ -175,49 +172,48 @@ export function EarnPage() {
                 <h1>Your Earnings</h1>
             </header>
 
-            {/* BLOCK 1: Balance + Laugh Power */}
-            <section className="earn-block-balance">
-                {/* Balance Section */}
-                <div className="earn-balance">
-                    <p className="earn-balance-label">Balance</p>
-                    <div className="earn-amount">
-                        <img src={iconBonk} alt="" />
-                        <span>{formatNumber(bonkBalance)}</span>
-                    </div>
-                    <p className="earn-sub">
-                        This is your available BONK. Cash it out or use it to boost your Laugh
-                        Power.
-                    </p>
-                    <div className="earn-actions">
-                        <button className="earn-btn withdraw" onClick={() => setShowWithdraw(true)}>
-                            Withdraw BONK
-                        </button>
-                        <button className="earn-btn add" onClick={() => setShowAddBonk(true)}>
-                            Add BONK
-                        </button>
-                    </div>
+            {/* Balance Section - NO white box wrapper */}
+            <section className="earn-balance">
+                <p className="earn-balance-label">Balance</p>
+                <div className="earn-amount">
+                    <img src={iconBonk} alt="" />
+                    <span>{formatNumber(bonkBalance)}</span>
                 </div>
-
-                {/* Laugh Power Card */}
-                <div className="earn-laugh-power" onClick={() => setShowLaughPower(true)}>
-                    <div className="earn-laugh-power-top">
-                        <div className="earn-laugh-power-title">
-                            <img src={iconLaughWeight} alt="" />
-                            <span>Laugh Power</span>
-                        </div>
-                        <div className="earn-laugh-power-right">
-                            <span>{formatNumber(dBonkBalance)}</span>
-                            <img src={iconArrowRight} alt="" />
-                        </div>
-                    </div>
-                    <p className="earn-laugh-power-sub">
-                        This is your available BONK. Cash it out or use it to boost your Laugh Power.
-                    </p>
+                <p className="earn-sub">
+                    This is your available BONK. Cash it out or use it to boost your Laugh Power.
+                </p>
+                <div className="earn-actions">
+                    <button className="earn-btn withdraw" onClick={() => setShowWithdraw(true)}>
+                        Withdraw BONK
+                    </button>
+                    <button className="earn-btn add" onClick={() => setShowAddBonk(true)}>
+                        Add BONK
+                    </button>
                 </div>
             </section>
 
-            {/* BLOCK 2: Tabs + Rewards/Transactions */}
+            {/* Laugh Power Card - White box */}
+            <section className="earn-card" onClick={() => setShowLaughPower(true)}>
+                <div className="earn-card-top">
+                    <div className="earn-card-title">
+                        <img src={iconLaughWeight} alt="" />
+                        <span>Laugh Power</span>
+                    </div>
+                    <div className="earn-card-right">
+                        <span>{formatNumber(dBonkBalance)}</span>
+                        <img src={iconArrowRight} alt="" />
+                    </div>
+                </div>
+                <p className="earn-card-sub">
+                    Your influence power for earning curation rewards.
+                </p>
+            </section>
+
+            {/* Tabs + List Block - White box */}
             <section className="earn-block-list">
+                {/* Drawer Handle */}
+                <div className="earn-drawer-handle" />
+
                 {/* Tabs */}
                 <div className="earn-tabs">
                     <button
@@ -233,6 +229,9 @@ export function EarnPage() {
                         Transaction
                     </button>
                 </div>
+
+                {/* Divider */}
+                <div className="earn-tabs-divider" />
 
                 {/* Tab Content */}
                 {activeTab === 'rewards' && (
