@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 // Icons
 import iconClose from '@/assets/icons/icon-close.svg';
-import iconBonk from '@/assets/icons/icon-bonk.png';
+import iconLaughWeight from '@/assets/icons/icon-laugh-weight.svg';
 
 interface PowerDownSheetProps {
     isOpen: boolean;
@@ -63,8 +63,8 @@ export function PowerDownSheet({
                     {/* Balance - Centered */}
                     <div className="power-balance-center">
                         <span className="power-balance-label">Laugh Power Balance</span>
-                        <span className="power-badge yellow">
-                            <img src={iconBonk} alt="" />
+                        <span className="power-badge green">
+                            <img src={iconLaughWeight} alt="" />
                             {formatBalance(dBonkBalance)}
                         </span>
                     </div>

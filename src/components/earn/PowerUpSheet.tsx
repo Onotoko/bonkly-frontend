@@ -3,6 +3,7 @@ import { useState } from 'react';
 // Icons
 import iconClose from '@/assets/icons/icon-close.svg';
 import iconBonk from '@/assets/icons/icon-bonk.png';
+import iconLaughWeight from '@/assets/icons/icon-laugh-weight.svg';
 
 interface PowerUpSheetProps {
     isOpen: boolean;
@@ -66,8 +67,8 @@ export function PowerUpSheet({
                     <div className="power-balances-row">
                         <div className="power-balance-item">
                             <span className="power-balance-label">Laugh Power Balance</span>
-                            <span className="power-badge yellow">
-                                <img src={iconBonk} alt="" />
+                            <span className="power-badge green">
+                                <img src={iconLaughWeight} alt="" />
                                 {formatBalance(dBonkBalance)}
                             </span>
                         </div>
@@ -99,7 +100,8 @@ export function PowerUpSheet({
 
                     {/* Description */}
                     <p className="power-description">
-                        Powering up converts BONK into Laugh Power (dBONK), increasing your influence.
+                        Powering up converts BONK into Laugh Power (dBONK), increasing your
+                        influence.
                     </p>
 
                     {/* CTA */}
