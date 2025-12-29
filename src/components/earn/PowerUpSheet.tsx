@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 // Icons
 import iconClose from '@/assets/icons/icon-close.svg';
-import iconBonk from '@/assets/icons/icon-bonk.png';
 import iconLaughWeight from '@/assets/icons/icon-laugh-weight.svg';
+import iconBonk from '@/assets/icons/icon-bonk.png';
+
+// Constants - match backend
+const BONK_TO_DBONK_RATE = 15;
 
 interface PowerUpSheetProps {
     isOpen: boolean;
@@ -24,6 +27,20 @@ export function PowerUpSheet({
 }: PowerUpSheetProps) {
     const [amount, setAmount] = useState('');
 
+    // Calculate preview
+    const preview = useMemo(() => {
+        const numAmount = parseFloat(amount) || 0;
+        if (numAmount <= 0) return null;
+
+        const dbonkReceived = numAmount * BONK_TO_DBONK_RATE;
+        const newTotalDBonk = dBonkBalance + dbonkReceived;
+
+        return {
+            dbonkReceived,
+            newTotalDBonk,
+        };
+    }, [amount, dBonkBalance]);
+
     if (!isOpen) return null;
 
     const handleOverlayClick = (e: React.MouseEvent) => {
@@ -38,10 +55,15 @@ export function PowerUpSheet({
         onSubmit(numAmount);
     };
 
-    const formatBalance = (num: number) => {
-        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-        if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-        return num.toFixed(0);
+    const handleMax = () => {
+        setAmount(String(bonkBalance));
+    };
+
+    const formatNumber = (num: number) => {
+        if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
+        if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
+        if (num < 1 && num > 0) return num.toFixed(4);
+        return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
     };
 
     const numAmount = parseFloat(amount) || 0;
@@ -63,50 +85,81 @@ export function PowerUpSheet({
                 </header>
 
                 <div className="power-modal-body">
-                    {/* Balances - 2 columns */}
+                    {/* Balances Row */}
                     <div className="power-balances-row">
                         <div className="power-balance-item">
-                            <span className="power-balance-label">Laugh Power Balance</span>
-                            <span className="power-badge green">
-                                <img src={iconLaughWeight} alt="" />
-                                {formatBalance(dBonkBalance)}
+                            <span className="power-balance-label">BONK Balance</span>
+                            <span className="power-badge red">
+                                <img src={iconBonk} alt="" />
+                                {formatNumber(bonkBalance)}
                             </span>
                         </div>
                         <div className="power-balance-item">
-                            <span className="power-balance-label">Bonk Balance</span>
-                            <span className="power-badge red">
-                                <img src={iconBonk} alt="" />
-                                {formatBalance(bonkBalance)}
+                            <span className="power-balance-label">Laugh Power</span>
+                            <span className="power-badge green">
+                                <img src={iconLaughWeight} alt="" />
+                                {formatNumber(dBonkBalance)}
                             </span>
                         </div>
                     </div>
 
-                    {/* Input */}
-                    <input
-                        type="number"
-                        className="power-input"
-                        placeholder="Enter amount in Bonk to power up"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        disabled={isLoading}
-                    />
+                    {/* Input with Max button */}
+                    <div className="power-input-wrapper">
+                        <input
+                            type="number"
+                            className="power-input"
+                            placeholder="Enter BONK amount to convert"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            disabled={isLoading}
+                        />
+                        <button
+                            className="power-max-btn"
+                            onClick={handleMax}
+                            disabled={isLoading}
+                        >
+                            MAX
+                        </button>
+                    </div>
 
                     {/* Conversion Rate */}
                     <div className="power-rate">
                         <span>1 BONK</span>
                         <span className="power-rate-arrow">→</span>
-                        <span>15 dBONK</span>
+                        <span>{BONK_TO_DBONK_RATE} Laugh Power</span>
                     </div>
+
+                    {/* Preview */}
+                    {preview && isValid && (
+                        <div className="power-preview">
+                            <div className="power-preview-row">
+                                <span>You will receive</span>
+                                <span className="power-preview-value green">
+                                    <img src={iconLaughWeight} alt="" />
+                                    +{formatNumber(preview.dbonkReceived)}
+                                </span>
+                            </div>
+                            <div className="power-preview-row">
+                                <span>New Laugh Power</span>
+                                <span className="power-preview-value">
+                                    <img src={iconLaughWeight} alt="" />
+                                    {formatNumber(preview.newTotalDBonk)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Description */}
                     <p className="power-description">
-                        Powering up converts BONK into Laugh Power (dBONK), increasing your
-                        influence.
+                        Power Up converts your BONK into <strong>Laugh Power</strong>, which
+                        increases your influence when curating memes. Higher Laugh Power means
+                        bigger curation rewards! Laugh Power can be converted back to BONK via
+                        Power Down (8 weeks).
                     </p>
 
                     {/* CTA */}
                     <button
-                        className="power-cta"
+                        className="power-cta power-cta-green"
                         onClick={handleSubmit}
                         disabled={!isValid || isLoading}
                     >

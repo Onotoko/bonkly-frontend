@@ -1,6 +1,7 @@
 // Icons
 import iconBonk from '@/assets/icons/icon-bonk.png';
-import iconLaughDefault from '@/assets/icons/icon-laugh-default.png';
+// import iconLaughDefault from '@/assets/icons/icon-laugh-default.png';
+import iconLaughWeight from '@/assets/icons/icon-laugh-weight.svg';
 
 interface Transaction {
     id: string;
@@ -75,9 +76,15 @@ export function TransactionsList({
     };
 
     const getTransactionIcon = (type: string) => {
-        if (type.includes('laugh') || type.includes('reward') || type === 'power_up') {
-            return iconLaughDefault;
+        // Power Up/Down use Laugh Weight icon for avatar
+        if (type === 'power_up' || type === 'power_down_distribution') {
+            return iconLaughWeight;
         }
+        // Laugh transactions use laugh icon for avatar
+        // if (type.includes('laugh')) {
+        //     return iconLaughDefault;
+        // }
+        // Default to BONK
         return iconBonk;
     };
 
@@ -87,6 +94,15 @@ export function TransactionsList({
         }
         return 'Bonk';
     };
+
+    // const getAmountIcon = (type: string) => {
+    //     // Only Power Up/Down show Laugh Power icon for amount
+    //     if (type === 'power_up' || type === 'power_down_distribution') {
+    //         return iconLaughWeight;
+    //     }
+    //     // Everything else is BONK
+    //     return iconBonk;
+    // };
 
     // Determine if transaction is positive (incoming) or negative (outgoing)
     const isPositive = (type: string) => {
