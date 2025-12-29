@@ -897,3 +897,416 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.earn-item-meta .meta-value.positive {
+    color: #22c55e;
+}
+
+.earn-item-meta .meta-value.negative {
+    color: #fe0405;
+}
+
+/* ============================================
+   WITHDRAW SHEET - Additional Styles
+   ============================================ */
+
+/* Error Message */
+.withdraw-error {
+    font-size: 13px;
+    color: #EF4444;
+    margin: 0;
+    padding: 0 4px;
+    text-align: left;
+    width: 100%;
+}
+
+/* ============================================
+   Step 2: Confirm / Fee Payment
+   ============================================ */
+
+.withdraw-confirm-body {
+    align-items: stretch;
+}
+
+/* Summary Box */
+.withdraw-summary {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.withdraw-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.withdraw-summary-row>span:first-child {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.withdraw-summary-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.withdraw-summary-value img {
+    width: 18px;
+    height: 18px;
+}
+
+.withdraw-summary-value.highlight {
+    color: #F59E0B;
+}
+
+/* Fee Instructions */
+.withdraw-fee-instructions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.withdraw-fee-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #22272E;
+    margin: 0;
+    text-align: left;
+}
+
+.withdraw-fee-address {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.withdraw-fee-address-text {
+    flex: 1;
+    font-size: 11px;
+    font-family: monospace;
+    color: #6b7280;
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.withdraw-copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: #fe0405;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.withdraw-copy-btn:hover {
+    opacity: 0.85;
+}
+
+.withdraw-copy-btn img {
+    width: 14px;
+    height: 14px;
+    filter: brightness(0) invert(1);
+}
+
+/* Actions Row (Cancel + Confirm) */
+.withdraw-actions-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.withdraw-btn-secondary {
+    flex: 1;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.withdraw-btn-secondary:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.withdraw-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.withdraw-actions-row .withdraw-cta {
+    flex: 1.2;
+    margin-top: 0;
+}
+
+/* ============================================
+   Step 3: Processing
+   ============================================ */
+
+.withdraw-processing {
+    align-items: center;
+    text-align: center;
+    padding: 48px 20px 40px;
+}
+
+.withdraw-processing-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.withdraw-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #fe0405;
+    border-radius: 50%;
+    animation: withdraw-spin 1s linear infinite;
+}
+
+@keyframes withdraw-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.withdraw-processing-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #22272E;
+    margin: 0 0 8px 0;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+}
+
+.withdraw-processing-text {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+    max-width: 280px;
+}
+
+.withdraw-processing .withdraw-cta {
+    width: 100%;
+    max-width: 200px;
+}
+
+
+/* ============================================
+   PENDING WITHDRAWALS SHEET
+
+   ============================================ */
+
+.pending-withdrawals-body {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: calc(70vh - 60px);
+}
+
+.pending-withdrawals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pending-withdrawal-item {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pending-withdrawal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pending-withdrawal-amount {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: #1f2937;
+}
+
+.pending-withdrawal-amount img {
+    width: 24px;
+    height: 24px;
+}
+
+/* Status Badges */
+.withdrawal-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.withdrawal-status.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.withdrawal-status.processing {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.withdrawal-status.completed {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.withdrawal-status.failed {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.withdrawal-status.refunded {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+/* Details */
+.pending-withdrawal-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pending-withdrawal-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.pending-withdrawal-row .label {
+    color: #6b7280;
+}
+
+.pending-withdrawal-row .value {
+    color: #374151;
+    font-weight: 500;
+}
+
+.pending-withdrawal-row .value.mono {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* Error Message */
+.pending-withdrawal-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #dc2626;
+    line-height: 1.4;
+}
+
+/* Actions */
+.pending-withdrawal-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.pending-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.pending-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pending-btn.primary {
+    background: #fe0405;
+    color: #fff;
+    border: none;
+}
+
+.pending-btn.secondary {
+    background: #fff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.pending-btn.secondary:hover:not(:disabled) {
+    background: #f9fafb;
+}
+
+.pending-status-text {
+    font-size: 13px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.pending-status-text.refunded {
+    color: #059669;
+    font-style: normal;
+}
+
+
+.earn-btn {
+    position: relative;
+}
+
+.earn-btn-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #fff;
+    color: #fe0405;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}

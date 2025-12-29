@@ -82,9 +82,11 @@ export const useCancelWithdraw = () => {
 
 /**
  * Get withdrawal requests
+ * Polls every 10s only when there are processing withdrawals
  */
 export const useWithdrawRequests = (limit = 20) => {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
     return useInfiniteQuery({
         queryKey: queryKeys.wallet.withdrawRequests(),
         queryFn: ({ pageParam = 1 }) =>
@@ -95,6 +97,16 @@ export const useWithdrawRequests = (limit = 20) => {
                 ? last.pagination.page + 1
                 : undefined,
         enabled: isAuthenticated,
+        // Smart polling: check if any request is processing
+        refetchInterval: (query) => {
+            const hasProcessing = query.state.data?.pages.some((page) =>
+                page.requests.some(
+                    (r: { status?: string }) => r.status === 'processing'
+                )
+            );
+            // Poll every 10s if processing, otherwise don't poll
+            return hasProcessing ? 10 * 1000 : false;
+        },
     });
 };
 

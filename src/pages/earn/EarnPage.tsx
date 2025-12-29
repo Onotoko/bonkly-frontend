@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
     AddBonkSheet,
     WithdrawSheet,
+    PendingWithdrawalsSheet,
     LaughPowerSheet,
     PowerUpSheet,
     PowerDownSheet,
@@ -17,7 +18,11 @@ import {
     useWalletBalance,
     useTransactions,
     useRequestWithdraw,
+    useConfirmWithdraw,
+    useCancelWithdraw,
+    useWithdrawRequests,
     useStartPowerDown,
+    usePowerUp,
 } from '@/hooks/queries/useWallet';
 import { usePendingRewards, useClaimRewards } from '@/hooks/queries/useRewards';
 
@@ -28,15 +33,35 @@ import iconArrowRight from '@/assets/icons/icon-arrow-right.svg';
 
 type EarnTab = 'rewards' | 'transactions';
 
+interface WithdrawalRequest {
+    withdrawalId: string;
+    amount: number;
+    destinationAddress: string;
+    estimatedFee: number;
+    feePaymentAddress: string;
+    status: string;
+    createdAt: string;
+    failedAt?: string;
+    completedAt?: string;
+    metadata?: {
+        failureReason?: string;
+        autoRefunded?: boolean;
+    };
+}
+
 export function EarnPage() {
     const [activeTab, setActiveTab] = useState<EarnTab>('rewards');
 
     // Modal states
     const [showAddBonk, setShowAddBonk] = useState(false);
     const [showWithdraw, setShowWithdraw] = useState(false);
+    const [showPendingWithdrawals, setShowPendingWithdrawals] = useState(false);
     const [showLaughPower, setShowLaughPower] = useState(false);
     const [showPowerUp, setShowPowerUp] = useState(false);
     const [showPowerDown, setShowPowerDown] = useState(false);
+
+    // Continue withdrawal from pending
+    const [continueWithdrawal, setContinueWithdrawal] = useState<WithdrawalRequest | null>(null);
 
     // Result modal
     const [resultModal, setResultModal] = useState<{
@@ -55,11 +80,15 @@ export function EarnPage() {
     const balanceQuery = useWalletBalance();
     const rewardsQuery = usePendingRewards();
     const transactionsQuery = useTransactions();
+    const withdrawRequestsQuery = useWithdrawRequests();
 
     // Mutations
-    const withdrawMutation = useRequestWithdraw();
+    const requestWithdrawMutation = useRequestWithdraw();
+    const confirmWithdrawMutation = useConfirmWithdraw();
+    const cancelWithdrawMutation = useCancelWithdraw();
     const claimMutation = useClaimRewards();
     const powerDownMutation = useStartPowerDown();
+    const powerUpMutation = usePowerUp();
 
     // Derived data
     const balance = balanceQuery.data;
@@ -71,6 +100,25 @@ export function EarnPage() {
 
     const transactions =
         transactionsQuery.data?.pages.flatMap((page) => page.transactions) ?? [];
+
+    // Get pending withdrawals
+    const withdrawalRequests: WithdrawalRequest[] =
+        withdrawRequestsQuery.data?.pages.flatMap((page) =>
+            page.requests.map((r) => ({
+                withdrawalId: r.withdrawalId,
+                amount: r.amount,
+                destinationAddress: r.destinationAddress ?? '',
+                estimatedFee: r.estimatedFee,
+                feePaymentAddress: r.feePaymentAddress,
+                status: r.status ?? 'awaiting_fee_payment',
+                createdAt: r.createdAt ?? new Date().toISOString(),
+                metadata: r.metadata,
+            }))
+        ) ?? [];
+
+    const pendingCount = withdrawalRequests.filter(
+        (w) => w.status === 'awaiting_fee_payment' || w.status === 'processing'
+    ).length;
 
     // Helpers
     const formatNumber = (num: number) => {
@@ -91,26 +139,65 @@ export function EarnPage() {
         setResultModal((prev) => ({ ...prev, isOpen: false }));
     };
 
-    // Handlers
-    const handleWithdraw = (amount: number, address: string) => {
-        withdrawMutation.mutate(
-            { amount, destinationAddress: address },
-            {
-                onSuccess: () => {
-                    setShowWithdraw(false);
-                    showSuccess(
-                        'Withdrawal Initiated!',
-                        'Your BONK withdrawal has been initiated. Please complete the fee payment to proceed.'
-                    );
-                },
-                onError: (error) => {
-                    const msg =
-                        error instanceof Error ? error.message : 'Please try again.';
-                    showError('Withdrawal Failed', msg);
-                },
-            }
+    // ============ Withdraw Handlers ============
+
+    const handleOpenWithdraw = () => {
+        // Check for pending withdrawals first
+        if (pendingCount > 0) {
+            setShowPendingWithdrawals(true);
+        } else {
+            setShowWithdraw(true);
+        }
+    };
+
+    const handleRequestWithdraw = async (amount: number, address: string) => {
+        const response = await requestWithdrawMutation.mutateAsync({
+            amount,
+            destinationAddress: address,
+        });
+        // Refetch withdraw requests
+        withdrawRequestsQuery.refetch();
+        return {
+            withdrawalId: response.withdrawalId,
+            amount: response.amount,
+            estimatedFee: response.estimatedFee,
+            feePaymentAddress: response.feePaymentAddress,
+        };
+    };
+
+    const handleConfirmWithdraw = async (withdrawalId: string, feePaymentTxHash: string) => {
+        await confirmWithdrawMutation.mutateAsync({
+            withdrawalRequestId: withdrawalId,
+            feePaymentTxHash,
+        });
+        // Refetch data
+        withdrawRequestsQuery.refetch();
+        balanceQuery.refetch();
+        // Close modal and show success
+        setShowWithdraw(false);
+        setContinueWithdrawal(null);
+        showSuccess(
+            'Withdrawal Processing!',
+            'Your BONK withdrawal is being processed. You will receive it in your wallet shortly.'
         );
     };
+
+    const handleCancelWithdraw = async (withdrawalId: string) => {
+        await cancelWithdrawMutation.mutateAsync(withdrawalId);
+        // Refetch data
+        withdrawRequestsQuery.refetch();
+        balanceQuery.refetch();
+    };
+
+    const handleContinueWithdrawal = (withdrawal: WithdrawalRequest) => {
+        setContinueWithdrawal(withdrawal);
+        setShowPendingWithdrawals(false);
+        setShowWithdraw(true);
+    };
+
+
+
+    // ============ Claim Handler ============
 
     const handleClaim = () => {
         claimMutation.mutate(undefined, {
@@ -127,12 +214,29 @@ export function EarnPage() {
         });
     };
 
+    // ============ Power Up Handler ============
+
     const handlePowerUp = (amount: number) => {
-        console.log('Power up:', amount);
-        setShowPowerUp(false);
-        setShowLaughPower(false);
-        showSuccess('Power Up Complete!', 'Your BONK has been converted to Laugh Power.');
+        powerUpMutation.mutate(
+            { bonkAmount: amount },
+            {
+                onSuccess: (data) => {
+                    setShowPowerUp(false);
+                    setShowLaughPower(false);
+                    showSuccess(
+                        'Power Up Complete!',
+                        `You converted ${formatNumber(amount)} BONK to ${formatNumber(data.dbonkReceived)} Laugh Power!`
+                    );
+                },
+                onError: (error) => {
+                    const msg = error instanceof Error ? error.message : 'Please try again.';
+                    showError('Power Up Failed', msg);
+                },
+            }
+        );
     };
+
+    // ============ Power Down Handler ============
 
     const handlePowerDown = (amount: number) => {
         powerDownMutation.mutate(
@@ -147,8 +251,7 @@ export function EarnPage() {
                     );
                 },
                 onError: (error) => {
-                    const msg =
-                        error instanceof Error ? error.message : 'Please try again.';
+                    const msg = error instanceof Error ? error.message : 'Please try again.';
                     showError('Power Down Failed', msg);
                 },
             }
@@ -172,7 +275,7 @@ export function EarnPage() {
                 <h1>Your Earnings</h1>
             </header>
 
-            {/* Balance Section - NO white box wrapper */}
+            {/* Balance Section */}
             <section className="earn-balance">
                 <p className="earn-balance-label">Balance</p>
                 <div className="earn-amount">
@@ -183,8 +286,11 @@ export function EarnPage() {
                     This is your available BONK. Cash it out or use it to boost your Laugh Power.
                 </p>
                 <div className="earn-actions">
-                    <button className="earn-btn withdraw" onClick={() => setShowWithdraw(true)}>
+                    <button className="earn-btn withdraw" onClick={handleOpenWithdraw}>
                         Withdraw BONK
+                        {pendingCount > 0 && (
+                            <span className="earn-btn-badge">{pendingCount}</span>
+                        )}
                     </button>
                     <button className="earn-btn add" onClick={() => setShowAddBonk(true)}>
                         Add BONK
@@ -192,7 +298,7 @@ export function EarnPage() {
                 </div>
             </section>
 
-            {/* Laugh Power Card - White box */}
+            {/* Laugh Power Card */}
             <section className="earn-card" onClick={() => setShowLaughPower(true)}>
                 <div className="earn-card-top">
                     <div className="earn-card-title">
@@ -209,12 +315,10 @@ export function EarnPage() {
                 </p>
             </section>
 
-            {/* Tabs + List Block - White box */}
+            {/* Tabs + List Block */}
             <section className="earn-block-list">
-                {/* Drawer Handle */}
                 <div className="earn-drawer-handle" />
 
-                {/* Tabs */}
                 <div className="earn-tabs">
                     <button
                         className={`earn-tab ${activeTab === 'rewards' ? 'active' : ''}`}
@@ -230,10 +334,8 @@ export function EarnPage() {
                     </button>
                 </div>
 
-                {/* Divider */}
                 <div className="earn-tabs-divider" />
 
-                {/* Tab Content */}
                 {activeTab === 'rewards' && (
                     <RewardsList
                         pendingRewards={pendingRewards}
@@ -261,12 +363,29 @@ export function EarnPage() {
                 depositAddress={depositAddress}
             />
 
+            <PendingWithdrawalsSheet
+                isOpen={showPendingWithdrawals}
+                onClose={() => setShowPendingWithdrawals(false)}
+                withdrawals={withdrawalRequests}
+                isLoading={withdrawRequestsQuery.isLoading}
+                onContinue={handleContinueWithdrawal}
+                onCancel={handleCancelWithdraw}
+                isCancelling={cancelWithdrawMutation.isPending}
+            />
+
             <WithdrawSheet
                 isOpen={showWithdraw}
-                onClose={() => setShowWithdraw(false)}
+                onClose={() => {
+                    setShowWithdraw(false);
+                    setContinueWithdrawal(null);
+                }}
                 balance={bonkBalance}
-                onSubmit={handleWithdraw}
-                isLoading={withdrawMutation.isPending}
+                onRequestWithdraw={handleRequestWithdraw}
+                onConfirmWithdraw={handleConfirmWithdraw}
+                onCancelWithdraw={handleCancelWithdraw}
+                isRequesting={requestWithdrawMutation.isPending}
+                isConfirming={confirmWithdrawMutation.isPending}
+                initialWithdrawal={continueWithdrawal}
             />
 
             <LaughPowerSheet
@@ -283,7 +402,7 @@ export function EarnPage() {
                 bonkBalance={bonkBalance}
                 dBonkBalance={dBonkBalance}
                 onSubmit={handlePowerUp}
-                isLoading={false}
+                isLoading={powerUpMutation.isPending}
             />
 
             <PowerDownSheet

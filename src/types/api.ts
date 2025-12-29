@@ -169,10 +169,25 @@ export interface WithdrawRequest {
 
 export interface WithdrawRequestResponse {
     withdrawalId: string;
+    userId?: string;
     amount: number;
+    destinationAddress: string;
     estimatedFee: number;
     feePaymentAddress: string;
-    message: string;
+    status: string;
+    message?: string;
+    createdAt: string;
+    updatedAt?: string;
+    feePaymentTxHash?: string;
+    withdrawalTxHash?: string;
+    completedAt?: string;
+    failedAt?: string;
+    metadata?: {
+        failureReason?: string;
+        autoRefunded?: boolean;
+        needsManualRefund?: boolean;
+        retryCount?: number;
+    };
 }
 
 export interface WithdrawConfirmRequest {

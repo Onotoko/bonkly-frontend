@@ -37,8 +37,6 @@ export function OAuthCallbackPage() {
                 try {
                     const decoded = atob(authParam);
                     const authData = JSON.parse(decoded);
-                    console.log('OAuth authData:', authData);
-                    console.log('isActivated:', authData.user?.isActivated);
                     setAuth(authData.user, authData.accessToken, authData.refreshToken);
 
                     // Check if user is activated

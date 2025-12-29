@@ -26,10 +26,27 @@ export function TransactionsList({
     onLoadMore,
     isFetchingMore,
 }: TransactionsListProps) {
-    const formatNumber = (num: number) => {
-        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-        if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-        return num.toFixed(0);
+    // Fixed: Handle small decimal amounts properly
+    const formatAmount = (num: number) => {
+        const absNum = Math.abs(num);
+
+        if (absNum >= 1000000) {
+            return `${(absNum / 1000000).toFixed(1)}M`;
+        }
+        if (absNum >= 1000) {
+            return `${(absNum / 1000).toFixed(1)}K`;
+        }
+        if (absNum >= 1) {
+            return absNum.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+        if (absNum > 0) {
+            // For amounts less than 1, show up to 4 decimal places
+            return absNum.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4
+            });
+        }
+        return '0';
     };
 
     const formatDate = (dateStr: string) => {
@@ -43,15 +60,16 @@ export function TransactionsList({
 
     const getTransactionTitle = (type: string) => {
         const titles: Record<string, string> = {
-            withdraw: 'Withdrawn',
-            deposit: 'Top Up',
-            power_up: 'Top Up',
-            power_down: 'Power Down',
+            withdraw: 'Withdrawal',
+            deposit: 'Deposit',
+            power_up: 'Power Up',
+            power_down_distribution: 'Power Down',
+            laugh_distribution: 'Laugh Distribution',
             laugh_sent: 'Laugh Sent',
             laugh_received: 'Laugh Received',
             creator_reward: 'Creator Reward',
             curator_reward: 'Curator Reward',
-            credit_purchase: 'Credit Purchase',
+            ai_credit_purchase: 'Credit Purchase',
         };
         return titles[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     };
@@ -64,10 +82,21 @@ export function TransactionsList({
     };
 
     const getTypeLabel = (type: string) => {
-        if (type === 'power_up' || type === 'power_down') {
+        if (type === 'power_up' || type === 'power_down_distribution') {
             return 'Laugh Power';
         }
         return 'Bonk';
+    };
+
+    // Determine if transaction is positive (incoming) or negative (outgoing)
+    const isPositive = (type: string) => {
+        const positiveTypes = [
+            'deposit',
+            'creator_reward',
+            'curator_reward',
+            'power_down_distribution',
+        ];
+        return positiveTypes.includes(type);
     };
 
     if (isLoading) {
@@ -84,24 +113,28 @@ export function TransactionsList({
 
     return (
         <div className="earn-list">
-            {transactions.map((txn) => (
-                <article key={txn.id} className="earn-item">
-                    <div className="earn-item-avatar">
-                        <img src={getTransactionIcon(txn.type)} alt="" />
-                    </div>
-                    <div className="earn-item-copy">
-                        <div className="earn-item-title">{getTransactionTitle(txn.type)}</div>
-                        <div className="earn-item-meta">
-                            <span className="meta-label">{getTypeLabel(txn.type)}</span>
-                            <span className="meta-value">
-                                <img src={iconBonk} alt="" />
-                                {formatNumber(Math.abs(txn.amount))}
-                            </span>
+            {transactions.map((txn) => {
+                const positive = isPositive(txn.type);
+
+                return (
+                    <article key={txn.id} className="earn-item">
+                        <div className="earn-item-avatar">
+                            <img src={getTransactionIcon(txn.type)} alt="" />
                         </div>
-                    </div>
-                    <span className="txn-date">{formatDate(txn.createdAt)}</span>
-                </article>
-            ))}
+                        <div className="earn-item-copy">
+                            <div className="earn-item-title">{getTransactionTitle(txn.type)}</div>
+                            <div className="earn-item-meta">
+                                <span className="meta-label">{getTypeLabel(txn.type)}</span>
+                                <span className={`meta-value ${positive ? 'positive' : 'negative'}`}>
+                                    <img src={iconBonk} alt="" />
+                                    {positive ? '+' : '-'}{formatAmount(txn.amount)}
+                                </span>
+                            </div>
+                        </div>
+                        <span className="txn-date">{formatDate(txn.createdAt)}</span>
+                    </article>
+                );
+            })}
 
             {hasNextPage && (
                 <div style={{ padding: '16px', textAlign: 'center' }}>
