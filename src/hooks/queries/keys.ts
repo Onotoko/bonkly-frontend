@@ -29,7 +29,8 @@ export const queryKeys = {
         powerDownHistory: () => [...queryKeys.wallet.all, 'power-down', 'history'] as const,
         checkDeposit: () => [...queryKeys.wallet.all, 'check-deposit'] as const,
         transactions: (page?: number) => [...queryKeys.wallet.all, 'transactions', page] as const,
-
+        depositInfo: () => [...queryKeys.wallet.all, 'deposit-info'] as const,
+        checkAddDeposit: () => [...queryKeys.wallet.all, 'check-add-deposit'] as const,
     },
 
     // Social

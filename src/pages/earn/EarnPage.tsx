@@ -22,6 +22,8 @@ import {
     useCancelWithdraw,
     useWithdrawRequests,
     useStartPowerDown,
+    useCancelPowerDown,
+    usePowerDownStatus,
     usePowerUp,
 } from '@/hooks/queries/useWallet';
 import { usePendingRewards, useClaimRewards } from '@/hooks/queries/useRewards';
@@ -30,6 +32,9 @@ import { usePendingRewards, useClaimRewards } from '@/hooks/queries/useRewards';
 import iconBonk from '@/assets/icons/icon-bonk.png';
 import iconLaughWeight from '@/assets/icons/icon-laugh-weight.svg';
 import iconArrowRight from '@/assets/icons/icon-arrow-right.svg';
+
+// Types
+import type { PowerDownStatus } from '@/types/api';
 
 type EarnTab = 'rewards' | 'transactions';
 
@@ -81,6 +86,7 @@ export function EarnPage() {
     const rewardsQuery = usePendingRewards();
     const transactionsQuery = useTransactions();
     const withdrawRequestsQuery = useWithdrawRequests();
+    const powerDownStatusQuery = usePowerDownStatus();
 
     // Mutations
     const requestWithdrawMutation = useRequestWithdraw();
@@ -88,13 +94,14 @@ export function EarnPage() {
     const cancelWithdrawMutation = useCancelWithdraw();
     const claimMutation = useClaimRewards();
     const powerDownMutation = useStartPowerDown();
+    const cancelPowerDownMutation = useCancelPowerDown();
     const powerUpMutation = usePowerUp();
 
     // Derived data
     const balance = balanceQuery.data;
     const bonkBalance = balance?.bonkWalletBalance ?? 0;
     const dBonkBalance = balance?.dBonk ?? 0;
-    const depositAddress = balance?.mpcWalletAddress ?? '';
+    // const depositAddress = balance?.mpcWalletAddress ?? '';
 
     const pendingRewards = rewardsQuery.data ?? null;
 
@@ -120,6 +127,12 @@ export function EarnPage() {
         (w) => w.status === 'awaiting_fee_payment' || w.status === 'processing'
     ).length;
 
+    // Get active power down
+    const activePowerDown: PowerDownStatus | null =
+        powerDownStatusQuery.data?.hasPowerDown && powerDownStatusQuery.data?.powerDown
+            ? powerDownStatusQuery.data.powerDown
+            : null;
+
     // Helpers
     const formatNumber = (num: number) => {
         if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -142,7 +155,6 @@ export function EarnPage() {
     // ============ Withdraw Handlers ============
 
     const handleOpenWithdraw = () => {
-        // Check for pending withdrawals first
         if (pendingCount > 0) {
             setShowPendingWithdrawals(true);
         } else {
@@ -155,7 +167,6 @@ export function EarnPage() {
             amount,
             destinationAddress: address,
         });
-        // Refetch withdraw requests
         withdrawRequestsQuery.refetch();
         return {
             withdrawalId: response.withdrawalId,
@@ -170,10 +181,8 @@ export function EarnPage() {
             withdrawalRequestId: withdrawalId,
             feePaymentTxHash,
         });
-        // Refetch data
         withdrawRequestsQuery.refetch();
         balanceQuery.refetch();
-        // Close modal and show success
         setShowWithdraw(false);
         setContinueWithdrawal(null);
         showSuccess(
@@ -184,7 +193,6 @@ export function EarnPage() {
 
     const handleCancelWithdraw = async (withdrawalId: string) => {
         await cancelWithdrawMutation.mutateAsync(withdrawalId);
-        // Refetch data
         withdrawRequestsQuery.refetch();
         balanceQuery.refetch();
     };
@@ -194,8 +202,6 @@ export function EarnPage() {
         setShowPendingWithdrawals(false);
         setShowWithdraw(true);
     };
-
-
 
     // ============ Claim Handler ============
 
@@ -236,7 +242,7 @@ export function EarnPage() {
         );
     };
 
-    // ============ Power Down Handler ============
+    // ============ Power Down Handlers ============
 
     const handlePowerDown = (amount: number) => {
         powerDownMutation.mutate(
@@ -256,6 +262,23 @@ export function EarnPage() {
                 },
             }
         );
+    };
+
+    const handleCancelPowerDown = () => {
+        cancelPowerDownMutation.mutate(undefined, {
+            onSuccess: () => {
+                setShowPowerDown(false);
+                setShowLaughPower(false);
+                showSuccess(
+                    'Power Down Cancelled',
+                    'Your remaining Laugh Power has been restored. Any BONK already received is yours to keep.'
+                );
+            },
+            onError: (error) => {
+                const msg = error instanceof Error ? error.message : 'Please try again.';
+                showError('Cancel Failed', msg);
+            },
+        });
     };
 
     const openPowerUp = () => {
@@ -360,7 +383,12 @@ export function EarnPage() {
             <AddBonkSheet
                 isOpen={showAddBonk}
                 onClose={() => setShowAddBonk(false)}
-                depositAddress={depositAddress}
+                onSuccess={(amount) => {
+                    showSuccess(
+                        'Deposit Received!',
+                        `${formatNumber(amount)} BONK has been added to your wallet.`
+                    );
+                }}
             />
 
             <PendingWithdrawalsSheet
@@ -392,6 +420,7 @@ export function EarnPage() {
                 isOpen={showLaughPower}
                 onClose={() => setShowLaughPower(false)}
                 dBonkBalance={dBonkBalance}
+                activePowerDown={activePowerDown}
                 onPowerDown={openPowerDown}
                 onPowerUp={openPowerUp}
             />
@@ -409,8 +438,11 @@ export function EarnPage() {
                 isOpen={showPowerDown}
                 onClose={() => setShowPowerDown(false)}
                 dBonkBalance={dBonkBalance}
+                activePowerDown={activePowerDown}
                 onSubmit={handlePowerDown}
+                onCancel={handleCancelPowerDown}
                 isLoading={powerDownMutation.isPending}
+                isCancelling={cancelPowerDownMutation.isPending}
             />
 
             {/* Result Modal */}

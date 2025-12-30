@@ -184,3 +184,16 @@ export const usePowerUp = () => {
         },
     });
 };
+
+/**
+ * Get deposit info (address + memo) for Add BONK flow
+ */
+export const useDepositInfo = () => {
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    return useQuery({
+        queryKey: queryKeys.wallet.depositInfo(),
+        queryFn: () => walletService.getDepositInfo(),
+        enabled: isAuthenticated,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    });
+};

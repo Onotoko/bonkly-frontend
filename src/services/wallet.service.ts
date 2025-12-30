@@ -12,6 +12,8 @@ import type {
     PowerDownHistoryResponse,
     FeedParams,
     CheckDepositResponse,
+    DepositInfo,
+    CheckAddDepositResponse,
 } from '../types/api';
 import { buildQuery } from '../utils/query';
 
@@ -106,8 +108,23 @@ export const walletService = {
             '/wallet/power-up',
             data
         ),
-};
 
+    // ============ Add BONK (Deposit) ============
+
+    /**
+     * GET /wallet/deposit-info
+     * Get deposit address and memo for adding BONK
+     */
+    getDepositInfo: () =>
+        api.get<DepositInfo>('/wallet/deposit-info'),
+
+    /**
+     * GET /wallet/check-add-deposit
+     * Check for pending BONK deposit (Add BONK flow)
+     */
+    checkAddDeposit: () =>
+        api.get<CheckAddDepositResponse>('/wallet/check-add-deposit'),
+};
 
 // Local types for transactions (inferred from backend)
 interface Transaction {

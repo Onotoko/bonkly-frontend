@@ -530,3 +530,19 @@ export interface PublicUserProfile {
     isFollowing: boolean;
     isFollowingYou: boolean;
 }
+
+export interface DepositInfo {
+    depositAddress: string;
+    memo: string;
+    tokenMint: string;
+    minDeposit: number;
+    instructions: string[];
+}
+
+export interface CheckAddDepositResponse {
+    found: boolean;
+    amount?: number;
+    txHash?: string;
+    newBalance?: number;
+    message?: string;
+}
