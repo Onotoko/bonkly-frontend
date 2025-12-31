@@ -1,77 +1,65 @@
-// hooks/queries/useCheckDeposit.ts
-// FOR ACTIVATION FLOW - DO NOT MODIFY
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback, useRef } from 'react';
 import { walletService } from '@/services';
 import { useAuthStore } from '@/stores';
 import { queryKeys } from './keys';
-import type { CheckDepositResponse } from '@/types/api';
+import type { CheckAddDepositResponse } from '@/types/api';
 
-interface UseCheckDepositOptions {
-    /** Polling interval in ms (default: 10000 = 10s) */
+interface UseCheckAddDepositOptions {
+    /** Polling interval in ms (default: 5000 = 5s) */
     pollingInterval?: number;
-    /** Max polling attempts before stopping (default: 30 = 5 minutes) */
+    /** Max polling attempts before stopping (default: 60 = 5 minutes at 5s) */
     maxAttempts?: number;
     /** Whether to start polling immediately (default: false) */
     autoStart?: boolean;
-    /** Callback when deposit is found and activated */
-    onActivated?: (result: CheckDepositResponse) => void;
+    /** Callback when deposit is found */
+    onSuccess?: (result: CheckAddDepositResponse) => void;
     /** Callback on error */
     onError?: (error: Error) => void;
     /** Callback when max attempts reached */
     onTimeout?: () => void;
 }
 
-export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
+export function useCheckAddDeposit(options: UseCheckAddDepositOptions = {}) {
     const {
-        pollingInterval = 10000,
-        maxAttempts = 30,
+        pollingInterval = 5000,
+        maxAttempts = 60,
         autoStart = false,
-        onActivated,
+        onSuccess,
         onError,
         onTimeout,
     } = options;
 
     const [isPolling, setIsPolling] = useState(autoStart);
-    const { user, setUser } = useAuthStore();
+    const { user } = useAuthStore();
     const qc = useQueryClient();
 
-    // Track attempts and activation state
+    // Track attempts and success state
     const attemptsRef = useRef(0);
-    const hasActivatedRef = useRef(false);
+    const hasSucceededRef = useRef(false);
     const timeoutCalledRef = useRef(false);
 
     const query = useQuery({
-        queryKey: queryKeys.wallet.checkDeposit(),
+        queryKey: queryKeys.wallet.checkAddDeposit(),
         queryFn: async () => {
             attemptsRef.current += 1;
 
-            const result = await walletService.checkDeposit();
+            const result = await walletService.checkAddDeposit();
 
-            // Handle activation
-            if (result.activated && result.found && !hasActivatedRef.current) {
-                hasActivatedRef.current = true;
+            // Handle success - deposit found
+            if (result.found && !hasSucceededRef.current) {
+                hasSucceededRef.current = true;
                 setIsPolling(false);
 
-                if (user) {
-                    setUser({
-                        ...user,
-                        isActivated: true,
-                        bonkRewardPool: result.bonkRewardPool ?? user.bonkRewardPool,
-                        dBonk: result.dBonk ?? user.dBonk,
-                        laughWeight: result.laughWeight ?? user.laughWeight,
-                    });
-                }
-
-                qc.invalidateQueries({ queryKey: queryKeys.user.me() });
+                // Invalidate wallet queries to refresh balance
                 qc.invalidateQueries({ queryKey: queryKeys.wallet.balance() });
+                qc.invalidateQueries({ queryKey: queryKeys.wallet.transactions() });
 
-                onActivated?.(result);
+                onSuccess?.(result);
             }
 
             // Check max attempts
-            if (attemptsRef.current >= maxAttempts && !hasActivatedRef.current) {
+            if (attemptsRef.current >= maxAttempts && !hasSucceededRef.current) {
                 setIsPolling(false);
                 if (!timeoutCalledRef.current) {
                     timeoutCalledRef.current = true;
@@ -81,7 +69,7 @@ export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
 
             return result;
         },
-        enabled: isPolling && !!user && !user.isActivated,
+        enabled: isPolling && !!user?.isActivated,
         refetchInterval: isPolling ? pollingInterval : false,
         refetchIntervalInBackground: false,
         retry: 2,
@@ -96,7 +84,7 @@ export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
 
     const startPolling = useCallback(() => {
         attemptsRef.current = 0;
-        hasActivatedRef.current = false;
+        hasSucceededRef.current = false;
         timeoutCalledRef.current = false;
         setIsPolling(true);
     }, []);
@@ -106,7 +94,7 @@ export function useCheckDeposit(options: UseCheckDepositOptions = {}) {
     }, []);
 
     const checkOnce = useCallback(() => {
-        hasActivatedRef.current = false;
+        hasSucceededRef.current = false;
         return query.refetch();
     }, [query]);
 

@@ -7,7 +7,7 @@ import iconCopy from '@/assets/icons/icon-copy.svg';
 import iconMemo from '@/assets/icons/icon-memo.svg';
 
 import { useDepositInfo } from '@/hooks/queries/useWallet';
-import { useCheckAddDeposit } from '@/hooks/queries/useCheckDeposit';
+import { useCheckAddDeposit } from '@/hooks/queries/useCheckAddDeposit';
 
 interface AddBonkSheetProps {
     isOpen: boolean;

@@ -4,6 +4,7 @@ import { ROUTES } from '@/constants/routes';
 
 // Components
 import { MediaPickerModal, SelectedMedia } from '@/components/meme/MediaPickerModal';
+import { TextEditorModal, TextOverlay } from '@/components/meme/TextEditorModal';
 
 // Hooks
 import {
@@ -14,6 +15,8 @@ import {
     useCreateMeme,
 } from '@/hooks/queries';
 
+import { ResultModal } from '@/components/ui';
+
 // Services
 import { uploadService } from '@/services';
 
@@ -22,12 +25,12 @@ import iconBack from '@/assets/icons/icon-back.svg';
 import iconClose from '@/assets/icons/icon-close.svg';
 import iconBonk from '@/assets/icons/icon-bonk.png';
 import iconPowerUp from '@/assets/icons/icon-power-up.svg';
+import iconPeopleGroup from '@/assets/icons/icon-people-group.svg';
+import iconPeople from '@/assets/icons/icon-people.svg';
 
 // Images
 import ornament from '@/assets/images/ornament-1.png';
 import aiLaughFace from '@/assets/icons/icon-meme-ai-laugh.png';
-import successIllustration from '@/assets/illustrations/result-success.png';
-import failIllustration from '@/assets/illustrations/result-error.png';
 
 // Types
 type Step = 'ai-prompt' | 'ai-result' | 'post-form';
@@ -76,6 +79,10 @@ export function CreateMemePage() {
     const [mediaUrl, setMediaUrl] = useState<string>(state?.mediaUrl || '');
     const [mediaType, setMediaType] = useState<MediaType>(state?.mediaType || 'image');
     const [previewUrl, setPreviewUrl] = useState<string>(state?.previewUrl || '');
+
+    // Text overlays state
+    const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([]);
+    const [showTextEditor, setShowTextEditor] = useState(false);
 
     // AI state
     const [aiPrompt, setAiPrompt] = useState('');
@@ -162,6 +169,16 @@ export function CreateMemePage() {
         navigate(ROUTES.HOME);
     };
 
+    // ============ Text Editor ============
+    const handleOpenTextEditor = () => {
+        setShowTextEditor(true);
+    };
+
+    const handleSaveTextOverlays = (overlays: TextOverlay[]) => {
+        console.log('Received overlays from editor:', overlays); // Debug log
+        setTextOverlays(overlays);
+    };
+
     // ============ AI Flow ============
     const handleAddReferenceMedia = () => {
         setShowAIMediaPicker(true);
@@ -222,7 +239,7 @@ export function CreateMemePage() {
                 prompt: aiPrompt,
                 mediaType: aiTemplate === 'video' ? 'video' : 'image',
                 duration: aiTemplate === 'video' ? 10 : undefined,
-                referenceMediaUrl, // Pass the uploaded URL
+                referenceMediaUrl,
             });
 
             setMediaUrl(result.url);
@@ -333,27 +350,29 @@ export function CreateMemePage() {
                 visibility: formData.visibility,
                 isAIGenerated: isAIFlow,
                 aiPrompt: isAIFlow ? aiPrompt : undefined,
+                // TODO: Add textOverlays to API when backend supports it
+                // textOverlays: textOverlays.length > 0 ? textOverlays : undefined,
             });
 
             setResultModal({
                 isOpen: true,
                 type: 'success',
-                title: 'Meme Posted!',
-                message: 'Your meme is now live. Time to collect those laughs!',
+                title: 'Juiced Up!',
+                message: 'Your Credits have arrived. Go generate some chaos.',
             });
         } catch {
             setResultModal({
                 isOpen: true,
                 type: 'error',
                 title: "Oops... That Didn't Work",
-                message: 'Something went wrong. Please try again.',
+                message: 'The blockchain said “nah.” Might just be a hiccup, try again.',
             });
         }
     };
 
     const handleResultClose = () => {
         setResultModal(prev => ({ ...prev, isOpen: false }));
-        if (resultModal.type === 'success' && resultModal.title === 'Meme Posted!') {
+        if (resultModal.type === 'success' && resultModal.title === 'Juiced Up!') {
             navigate(ROUTES.HOME);
         }
     };
@@ -477,7 +496,7 @@ export function CreateMemePage() {
 
     // ============ Render AI Result Step ============
     const renderAIResultStep = () => (
-        <div className="create-ai-page result">
+        <div className="create-ai-page">
             <header className="create-header">
                 <button className="icon-button" onClick={handleBack}>
                     <img src={iconBack} alt="" />
@@ -488,100 +507,189 @@ export function CreateMemePage() {
                 </button>
             </header>
 
-            <div className="ai-result-preview">
-                {mediaType === 'video' ? (
-                    <video src={previewUrl} controls autoPlay loop />
-                ) : (
-                    <img src={previewUrl} alt="Generated meme" />
-                )}
-            </div>
-
-            <div className="ai-footer">
-                <button className="ai-cta" onClick={handleNextFromResult}>
-                    Next
-                </button>
-            </div>
-        </div>
-    );
-
-    // ============ Render Post Form Step ============
-    const renderPostFormStep = () => (
-        <div className="create-post-page">
-            <header className="create-header">
-                <button className="icon-button" onClick={handleBack}>
-                    <img src={iconBack} alt="" />
-                </button>
-                <span className="create-title">Upload Media</span>
-                <button className="icon-button" onClick={handleClose}>
-                    <img src={iconClose} alt="" />
-                </button>
-            </header>
-
-            <div className="post-body">
-                <div className="post-preview">
-                    {mediaType === 'video' ? (
-                        <video src={previewUrl || mediaUrl} controls />
-                    ) : (
-                        <img src={previewUrl || mediaUrl} alt="Preview" />
-                    )}
-                </div>
-
-                <div className="post-form">
-                    <div className="form-group">
-                        <label>Aa</label>
-                        <div className="post-input-wrap">
-                            <textarea
-                                placeholder="Add description..."
-                                value={formData.caption}
-                                onChange={e => handleCaptionChange(e.target.value)}
-                                maxLength={MAX_CAPTION}
-                            />
-                            <span className="char-count">{formData.caption.length}/{MAX_CAPTION}</span>
-                        </div>
+            {/* Result Card Modal */}
+            <div className="ai-result-overlay">
+                <div className="ai-result-card">
+                    <button className="ai-result-close" onClick={handleBack}>
+                        <img src={iconClose} alt="" />
+                    </button>
+                    <div className="ai-result-media">
+                        {mediaType === 'video' ? (
+                            <video src={previewUrl} controls autoPlay loop />
+                        ) : (
+                            <img src={previewUrl} alt="Generated meme" />
+                        )}
                     </div>
-
-                    <div className="post-tags-wrap">
-                        <div className="tag-list">
-                            {formData.tags.map(tag => (
-                                <span key={`tag-${tag}`} className="tag-chip">
-                                    #{tag}
-                                    <button onClick={() => handleRemoveTag(tag)}>×</button>
-                                </span>
-                            ))}
-                        </div>
-                        <input
-                            className="tag-input"
-                            placeholder={formData.tags.length < MAX_TAGS ? "#meme" : ""}
-                            value={tagInput}
-                            onChange={e => setTagInput(e.target.value)}
-                            onKeyDown={handleTagKeyDown}
-                            onBlur={handleAddTag}
-                            disabled={formData.tags.length >= MAX_TAGS}
-                        />
-                    </div>
-
-                    <button
-                        className="visibility-btn"
-                        onClick={() => setShowVisibilitySheet(true)}
-                    >
-                        <span className="vis-label">Share with</span>
-                        <span className="vis-value">
-                            {formData.visibility === 'public' ? 'Everyone' : 'Only Me'}
-                        </span>
-                        <span className="vis-caret">▾</span>
+                    <button className="ai-result-next" onClick={handleNextFromResult}>
+                        Next
                     </button>
                 </div>
             </div>
 
-            <button
-                className="post-cta"
-                onClick={handlePostMeme}
-                disabled={createMemeMutation.isPending}
-            >
-                {createMemeMutation.isPending ? 'Posting...' : 'Post Meme'}
-            </button>
+            {/* Footer still visible behind */}
+            <div className="ai-footer">
+                <div className="ai-credits-row">
+                    <span className="credit-pill green">
+                        <img src={iconPowerUp} alt="" />
+                        {credits} Credits
+                    </span>
+                    <button className="add-more-btn" onClick={() => setShowPowerUpModal(true)}>
+                        Add More ▾
+                    </button>
+                </div>
+                <button className="ai-cta" disabled>
+                    Cook Meme
+                </button>
+            </div>
         </div>
     );
+
+    // ============ Render Post Form Step (Updated per Figma) ============
+    const renderPostFormStep = () => {
+        console.log('Rendering post form, textOverlays:', textOverlays); // Debug
+
+        return (
+            <div className="create-post-page">
+                <header className="create-header">
+                    <button className="icon-button" onClick={handleBack}>
+                        <img src={iconBack} alt="" />
+                    </button>
+                    <span className="create-title">Post Editor</span>
+                    <button className="icon-button" onClick={handleClose}>
+                        <img src={iconClose} alt="" />
+                    </button>
+                </header>
+
+                <div className="post-body">
+                    {/* Media Preview - Full width, no border */}
+                    <div className="post-preview">
+                        {mediaType === 'video' ? (
+                            <video src={previewUrl || mediaUrl} controls />
+                        ) : (
+                            <img src={previewUrl || mediaUrl} alt="Preview" />
+                        )}
+
+                        {/* Text overlays layer */}
+                        {textOverlays.length > 0 && (
+                            <div className="text-overlays-layer">
+                                {textOverlays.map(overlay => {
+                                    let translateX = '-50%';
+                                    if (overlay.align === 'left') translateX = '0%';
+                                    if (overlay.align === 'right') translateX = '-100%';
+
+                                    return (
+                                        <div
+                                            key={overlay.id}
+                                            className="preview-text-overlay"
+                                            style={{
+                                                position: 'absolute',
+                                                left: `${overlay.x}%`,
+                                                top: `${overlay.y}%`,
+                                                transform: `translate(${translateX}, -50%)`,
+                                                fontFamily: overlay.font === 'happy' ? "'Comic Sans MS', cursive" :
+                                                    overlay.font === 'vintage' ? "'Times New Roman', serif" :
+                                                        overlay.font === 'excited' ? "'Impact', sans-serif" :
+                                                            "'Arial Black', sans-serif",
+                                                fontSize: `${overlay.fontSize}px`,
+                                                color: overlay.color,
+                                                textAlign: overlay.align,
+                                                whiteSpace: 'nowrap',
+                                                ...(overlay.style === 'fill' && {
+                                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                                    padding: '8px 16px',
+                                                }),
+                                                ...(overlay.style === 'fill-round' && {
+                                                    backgroundColor: overlay.color,
+                                                    padding: '8px 20px',
+                                                    borderRadius: '999px',
+                                                    color: overlay.color === '#FFFFFF' || overlay.color === '#FFD600' ? '#1F1F1F' : '#FFFFFF',
+                                                }),
+                                                ...(overlay.style === 'text' && {
+                                                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                                }),
+                                            }}
+                                        >
+                                            {overlay.text}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="post-form">
+                        {/* Aa Button - Opens Text Editor */}
+                        <button
+                            className="add-text-btn"
+                            onClick={handleOpenTextEditor}
+                            title="Add text overlay"
+                        >
+                            <span className="aa-icon">Aa</span>
+                        </button>
+
+                        {/* Description */}
+                        <div className="form-group">
+                            <div className="post-input-wrap">
+                                <textarea
+                                    placeholder="Add description..."
+                                    value={formData.caption}
+                                    onChange={e => handleCaptionChange(e.target.value)}
+                                    maxLength={MAX_CAPTION}
+                                />
+                                <span className="char-count">{formData.caption.length}/{MAX_CAPTION}</span>
+                            </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div className="form-group">
+                            <div className="post-tags-wrap">
+                                <div className="tag-list">
+                                    {formData.tags.map(tag => (
+                                        <span key={`tag-${tag}`} className="tag-chip">
+                                            #{tag}
+                                            <button onClick={() => handleRemoveTag(tag)}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <input
+                                    className="tag-input"
+                                    placeholder={formData.tags.length < MAX_TAGS ? "Add tag" : ""}
+                                    value={tagInput}
+                                    onChange={e => setTagInput(e.target.value)}
+                                    onKeyDown={handleTagKeyDown}
+                                    onBlur={handleAddTag}
+                                    disabled={formData.tags.length >= MAX_TAGS}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Visibility */}
+                        <button
+                            className="visibility-btn"
+                            onClick={() => setShowVisibilitySheet(true)}
+                        >
+                            <span className="vis-label">Share to</span>
+                            <span className="vis-value">
+                                {formData.visibility === 'public' ? 'Everyone' : 'Only Me'}
+                            </span>
+                            <span className="vis-caret">▾</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Post Button - Fixed at bottom */}
+                <div className="post-footer">
+                    <button
+                        className="post-cta"
+                        onClick={handlePostMeme}
+                        disabled={createMemeMutation.isPending}
+                    >
+                        {createMemeMutation.isPending ? 'Posting...' : 'Post Meme'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     // ============ Render Power Up Modal ============
     const renderPowerUpModal = () => {
@@ -669,12 +777,27 @@ export function CreateMemePage() {
 
             {renderPowerUpModal()}
 
+            {/* AI Reference Media Picker */}
             <MediaPickerModal
                 isOpen={showAIMediaPicker}
                 onClose={() => setShowAIMediaPicker(false)}
                 onNext={handleAIMediaSelected}
             />
 
+            {/* Text Editor Modal - key forces remount on open */}
+            {showTextEditor && (
+                <TextEditorModal
+                    key={`text-editor-${Date.now()}`}
+                    isOpen={showTextEditor}
+                    onClose={() => setShowTextEditor(false)}
+                    onSave={handleSaveTextOverlays}
+                    mediaUrl={previewUrl || mediaUrl}
+                    mediaType={mediaType}
+                    initialOverlays={textOverlays}
+                />
+            )}
+
+            {/* Visibility Sheet */}
             {showVisibilitySheet && (
                 <div className="visibility-modal open" onClick={() => setShowVisibilitySheet(false)}>
                     <div className="visibility-sheet" onClick={e => e.stopPropagation()}>
@@ -685,10 +808,12 @@ export function CreateMemePage() {
                             </button>
                         </header>
                         <button className="vis-option" onClick={() => handleVisibilitySelect('public')}>
-                            Everyone
+                            <img src={iconPeopleGroup} alt="" className="vis-option-icon" />
+                            <span>Everyone</span>
                         </button>
                         <button className="vis-option" onClick={() => handleVisibilitySelect('private')}>
-                            Only Me
+                            <img src={iconPeople} alt="" className="vis-option-icon" />
+                            <span>Only Me</span>
                         </button>
                         <button className="vis-cancel" onClick={() => setShowVisibilitySheet(false)}>
                             Cancel
@@ -697,6 +822,7 @@ export function CreateMemePage() {
                 </div>
             )}
 
+            {/* Discard Modal */}
             {showDiscardModal && (
                 <div className="discard-modal open">
                     <div className="discard-sheet">
@@ -721,44 +847,21 @@ export function CreateMemePage() {
                 </div>
             )}
 
-            {resultModal.isOpen && (
-                <div className="result-modal open">
-                    <div className="result-sheet">
-                        <div className="result-illustration">
-                            <img className="result-burst" src={ornament} alt="" />
-                            <img
-                                className="result-icon"
-                                src={resultModal.type === 'success' ? successIllustration : failIllustration}
-                                alt=""
-                            />
-                        </div>
-                        <div className="result-copy">
-                            <h3 className="result-title">{resultModal.title}</h3>
-                            <p className="result-message">{resultModal.message}</p>
-                        </div>
-                        <div className="result-actions">
-                            {resultModal.type === 'error' && (
-                                <button
-                                    className="result-btn secondary"
-                                    onClick={() => setResultModal(prev => ({ ...prev, isOpen: false }))}
-                                >
-                                    Close
-                                </button>
-                            )}
-                            <button
-                                className="result-btn primary"
-                                onClick={handleResultClose}
-                            >
-                                {resultModal.type === 'success' && resultModal.title === 'Juiced Up!'
-                                    ? 'Unleash It'
-                                    : resultModal.type === 'error'
-                                        ? 'Retry'
-                                        : 'Okay'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Result Modal */}
+            <ResultModal
+                isOpen={resultModal.isOpen}
+                type={resultModal.type}
+                title={resultModal.title}
+                message={resultModal.message}
+                primaryLabel={
+                    resultModal.title === 'Juiced Up!'
+                        ? 'Unleash It'
+                        : 'Okay'
+                }
+                secondaryLabel={resultModal.type === 'error' ? 'Close' : undefined}
+                onPrimary={handleResultClose}
+                onSecondary={resultModal.type === 'error' ? () => setResultModal(prev => ({ ...prev, isOpen: false })) : undefined}
+            />
         </div>
     );
 }

@@ -100,8 +100,12 @@ export {
 } from './useAI';
 
 export {
-    useCheckDeposit
+    useCheckDeposit,
 } from './useCheckDeposit'
+
+export {
+    useCheckAddDeposit,
+} from './useCheckAddDeposit'
 
 export { useSearchMemes, useTrendingTags } from './useMemes';
 
