@@ -1,5 +1,5 @@
 /* ============================================
-   Create Meme Page - Matching Figma
+   Create Meme Page - Complete CSS
    ============================================ */
 
 .create-meme-shell {
@@ -10,9 +10,8 @@
     position: relative;
 }
 
-/* ============ Choose Method - Bottom Sheet ============ */
 /* ============================================
-   CREATE MEME SHEET
+   CREATE MEME SHEET - Bottom Sheet Modal
    ============================================ */
 
 .create-meme-sheet-overlay {
@@ -25,10 +24,6 @@
     z-index: 100;
 }
 
-.create-meme-sheet-overlay.open {
-    display: flex;
-}
-
 .create-meme-sheet {
     width: 100%;
     max-width: 540px;
@@ -37,6 +32,17 @@
     padding: 0 20px 32px;
     position: relative;
     overflow: hidden;
+    animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }
 
 .meme-ornament {
@@ -89,6 +95,7 @@
     text-align: left;
     border-radius: 12px;
     transition: background 0.2s;
+    width: 100%;
 }
 
 .meme-option:hover {
@@ -109,6 +116,10 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+.meme-icon.ai {
+    background: #fff3e0;
 }
 
 .meme-icon img {
@@ -154,7 +165,10 @@
     cursor: not-allowed;
 }
 
-/* ============ AI Prompt Page ============ */
+/* ============================================
+   AI PROMPT PAGE
+   ============================================ */
+
 .create-ai-page {
     position: fixed;
     inset: 0;
@@ -343,10 +357,6 @@
     border: 1px solid #b7e28a;
 }
 
-.credit-dot {
-    font-size: 10px;
-}
-
 .add-more-btn {
     padding: 8px 14px;
     background: transparent;
@@ -414,34 +424,133 @@
     line-height: 1;
 }
 
-.ai-reference-remove:hover {
-    background: rgba(254, 4, 5, 0.8);
+/* ============================================
+   AI RESULT - Floating Card Modal
+   ============================================ */
+
+.ai-result-page {
+    position: relative;
 }
 
-/* ============ AI Result Preview ============ */
-.ai-result-preview {
-    flex: 1;
+.ai-result-page .dimmed {
+    opacity: 0.15;
+    pointer-events: none;
+    filter: blur(2px);
+}
+
+.ai-result-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1a1a1a;
-    padding: 20px;
+    padding: 60px 32px;
+    pointer-events: none;
 }
 
-.ai-result-preview img,
-.ai-result-preview video {
-    max-width: 100%;
-    max-height: 50vh;
-    border-radius: 12px;
-    object-fit: contain;
+.ai-result-card-wrapper {
+    position: relative;
+    pointer-events: auto;
 }
 
-/* ============ Post Form Page ============ */
+.ai-result-close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ai-result-close img {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+}
+
+.ai-result-card {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 12px 48px rgba(0, 0, 0, 0.08);
+    animation: scaleIn 0.25s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.ai-result-media {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #f5f7fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.ai-result-media img,
+.ai-result-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ai-result-next {
+    width: calc(100% - 40px);
+    margin: 20px;
+    padding: 16px;
+    background: #FE0405;
+    border: none;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c40304;
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
+}
+
+/* ============================================
+   POST FORM PAGE
+   ============================================ */
+
 .create-post-page {
-    min-height: 100vh;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
     background: #fff;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+}
+
+.create-post-page .create-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
 }
 
 .post-body {
@@ -451,65 +560,92 @@
 }
 
 .post-preview {
+    width: 100%;
     background: #f5f7fa;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 0;
+    position: relative;
 }
 
 .post-preview img,
 .post-preview video {
-    max-width: 100%;
-    max-height: 40vh;
-    border-radius: 12px;
+    width: 100%;
+    max-height: 50vh;
     object-fit: contain;
 }
 
+.post-preview .text-overlays-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
 .post-form {
-    padding: 20px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+}
+
+.add-text-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    padding: 8px 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.add-text-btn .aa-icon {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f1f1f;
+    font-family: "Inter", sans-serif;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-}
-
-.form-group label {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1f1f1f;
+    gap: 0;
 }
 
 .post-input-wrap {
     position: relative;
-    border: 1px solid #dfe3e8;
+    background: #fff;
+    border: 1px solid #e6e8ed;
     border-radius: 12px;
-    overflow: hidden;
 }
 
 .post-input-wrap textarea {
     width: 100%;
     min-height: 80px;
     padding: 14px;
+    padding-right: 60px;
     border: none;
-    font-size: 14px;
+    font-size: 15px;
     font-family: inherit;
     resize: none;
     outline: none;
+    border-radius: 12px;
+    color: #1f1f1f;
+}
+
+.post-input-wrap textarea::placeholder {
+    color: #9a9fa8;
 }
 
 .char-count {
     position: absolute;
     right: 14px;
-    bottom: 10px;
-    font-size: 12px;
-    color: #8a8f99;
-    font-weight: 600;
+    top: 14px;
+    font-size: 13px;
+    color: #9a9fa8;
+    font-weight: 500;
 }
 
 .post-tags-wrap {
@@ -517,8 +653,9 @@
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
-    padding: 12px;
-    border: 1px solid #dfe3e8;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid #e6e8ed;
     border-radius: 12px;
     min-height: 48px;
 }
@@ -556,55 +693,74 @@
     min-width: 80px;
     border: none;
     outline: none;
-    font-size: 14px;
+    font-size: 15px;
     font-family: inherit;
+    color: #1f1f1f;
+}
+
+.tag-input::placeholder {
+    color: #9a9fa8;
 }
 
 .visibility-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
+    gap: 6px;
+    padding: 10px 16px;
     background: #f5f6f7;
-    border: 1px solid #dfe3e8;
-    border-radius: 20px;
+    border: 1px solid #e6e8ed;
+    border-radius: 999px;
     cursor: pointer;
     align-self: flex-start;
 }
 
 .vis-label {
+    font-size: 14px;
     color: #666c75;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .vis-value {
-    color: #2f3339;
+    font-size: 14px;
+    color: #1f1f1f;
     font-weight: 700;
 }
 
 .vis-caret {
+    font-size: 10px;
     color: #666c75;
 }
 
-.post-cta {
-    margin: 16px 20px 32px;
+.post-footer {
     padding: 16px;
-    background: #fe0405;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    background: #fff;
+    margin-top: auto;
+}
+
+.post-cta {
+    width: 100%;
+    padding: 16px 33px;
+    background: #FE0405;
     border: none;
-    border-radius: 999px;
-    font-size: 18px;
+    border-radius: 30px;
+    font-size: 17px;
     font-weight: 800;
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 4px 0 rgba(180, 0, 0, 0.28);
+    box-shadow: 0 6px 0 0 rgba(34, 39, 46, 0.20);
+    font-family: "Bricolage Grotesque", "Inter", sans-serif;
 }
 
 .post-cta:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
-/* ============ Power Up Modal ============ */
+/* ============================================
+   POWER UP MODAL
+   ============================================ */
+
 .power-modal {
     position: fixed;
     inset: 0;
@@ -689,10 +845,6 @@
     height: 18px;
 }
 
-.power-balance .badge .dot {
-    font-size: 10px;
-}
-
 .power-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -718,27 +870,18 @@
     background: #e6ffcf;
 }
 
-.power-card:disabled {
+.power-card.selected {
+    border: 2px solid #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.power-card.insufficient {
     opacity: 0.6;
-    cursor: not-allowed;
 }
 
-.power-card .power-head {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.power-card .icon {
+.power-card .power-head img {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    background: #e4f7d5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    object-fit: contain;
 }
 
 .power-card .title {
@@ -761,6 +904,12 @@
     height: 14px;
 }
 
+.power-card .insufficient-label {
+    color: #f44336;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
 .power-cta {
     width: 100%;
     padding: 16px;
@@ -774,27 +923,10 @@
     box-shadow: 0 4px 0 rgba(26, 140, 0, 0.28);
 }
 
-.power-cta:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 rgba(26, 140, 0, 0.28);
-}
+/* ============================================
+   VISIBILITY MODAL
+   ============================================ */
 
-.power-card.selected {
-    border: 2px solid #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
-}
-
-.power-card.insufficient {
-    opacity: 0.6;
-}
-
-.power-card .insufficient-label {
-    color: #f44336;
-    font-size: 10px;
-    margin-top: 4px;
-}
-
-/* ============ Visibility Modal ============ */
 .visibility-modal {
     position: fixed;
     inset: 0;
@@ -827,6 +959,9 @@
 }
 
 .vis-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     width: 100%;
     padding: 16px 20px;
     background: none;
@@ -835,8 +970,13 @@
     text-align: left;
     font-size: 16px;
     font-weight: 600;
-    color: #4d525a;
+    color: #2f3339;
     cursor: pointer;
+}
+
+.vis-option-icon {
+    width: 24px;
+    height: 24px;
 }
 
 .vis-cancel {
@@ -850,7 +990,10 @@
     cursor: pointer;
 }
 
-/* ============ Discard Modal ============ */
+/* ============================================
+   DISCARD MODAL
+   ============================================ */
+
 .discard-modal {
     position: fixed;
     inset: 0;
@@ -859,8 +1002,6 @@
     align-items: flex-end;
     justify-content: center;
     z-index: 250;
-    padding: 0;
-    margin: 0;
 }
 
 .discard-modal.open {
@@ -919,47 +1060,4 @@
     background: #6f19ff;
     color: #fff;
     box-shadow: 0 4px 0 rgba(66, 0, 140, 0.28);
-}
-
-/* ============ Upload Progress Toast ============ */
-.upload-progress-toast {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    padding: 16px 24px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    min-width: 200px;
-}
-
-.upload-progress-bar {
-    height: 6px;
-    background: #e5e9ef;
-    border-radius: 999px;
-    margin-top: 10px;
-    overflow: hidden;
-}
-
-.upload-progress-bar>div {
-    height: 100%;
-    background: #fe0405;
-    border-radius: 999px;
-    transition: width 0.3s ease;
-}
-
-/* ============ Animation ============ */
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
 }

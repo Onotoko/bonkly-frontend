@@ -6,6 +6,8 @@ import { ROUTES } from '@/constants/routes';
 import { MediaPickerModal, SelectedMedia } from '@/components/meme/MediaPickerModal';
 import { TextEditorModal, TextOverlay } from '@/components/meme/TextEditorModal';
 
+import { renderMemeWithOverlays, blobToFile } from '@/utils/renderMeme';
+
 // Hooks
 import {
     useGenerateAI,
@@ -342,37 +344,56 @@ export function CreateMemePage() {
         if (!mediaUrl) return;
 
         try {
+            let finalMediaUrl = mediaUrl;
+
+            // If there are text overlays and it's an image, render them into the image
+            if (textOverlays.length > 0 && mediaType === 'image') {
+                try {
+                    // Render image with text overlays burned in
+                    const renderedBlob = await renderMemeWithOverlays(
+                        previewUrl || mediaUrl,
+                        textOverlays
+                    );
+
+                    // Upload the rendered image
+                    const renderedFile = blobToFile(renderedBlob, `meme-${Date.now()}.jpg`);
+                    const uploadResult = await uploadService.uploadMedia(renderedFile);
+                    finalMediaUrl = uploadResult.mediaUrl;
+                } catch (renderError) {
+                    console.error('Failed to render overlays:', renderError);
+                    // Continue with original image if rendering fails
+                }
+            }
+
             await createMemeMutation.mutateAsync({
-                mediaUrl,
+                mediaUrl: finalMediaUrl,
                 mediaType,
                 caption: formData.caption || undefined,
                 tags: formData.tags.length > 0 ? formData.tags : undefined,
                 visibility: formData.visibility,
                 isAIGenerated: isAIFlow,
                 aiPrompt: isAIFlow ? aiPrompt : undefined,
-                // TODO: Add textOverlays to API when backend supports it
-                // textOverlays: textOverlays.length > 0 ? textOverlays : undefined,
             });
 
             setResultModal({
                 isOpen: true,
                 type: 'success',
-                title: 'Juiced Up!',
-                message: 'Your Credits have arrived. Go generate some chaos.',
+                title: 'Meme Posted!',
+                message: 'Your meme is now live. Time to collect those laughs!',
             });
         } catch {
             setResultModal({
                 isOpen: true,
                 type: 'error',
                 title: "Oops... That Didn't Work",
-                message: 'The blockchain said “nah.” Might just be a hiccup, try again.',
+                message: 'The blockchain said "nah." Might just be a hiccup, try again.',
             });
         }
     };
 
     const handleResultClose = () => {
         setResultModal(prev => ({ ...prev, isOpen: false }));
-        if (resultModal.type === 'success' && resultModal.title === 'Juiced Up!') {
+        if (resultModal.type === 'success' && resultModal.title === 'Meme Posted!') {
             navigate(ROUTES.HOME);
         }
     };
@@ -496,7 +517,7 @@ export function CreateMemePage() {
 
     // ============ Render AI Result Step ============
     const renderAIResultStep = () => (
-        <div className="create-ai-page">
+        <div className="create-ai-page ai-result-page">
             <header className="create-header">
                 <button className="icon-button" onClick={handleBack}>
                     <img src={iconBack} alt="" />
@@ -507,27 +528,37 @@ export function CreateMemePage() {
                 </button>
             </header>
 
-            {/* Result Card Modal */}
-            <div className="ai-result-overlay">
-                <div className="ai-result-card">
-                    <button className="ai-result-close" onClick={handleBack}>
-                        <img src={iconClose} alt="" />
-                    </button>
-                    <div className="ai-result-media">
-                        {mediaType === 'video' ? (
-                            <video src={previewUrl} controls autoPlay loop />
-                        ) : (
-                            <img src={previewUrl} alt="Generated meme" />
-                        )}
-                    </div>
-                    <button className="ai-result-next" onClick={handleNextFromResult}>
-                        Next
-                    </button>
+            {/* Dimmed background content */}
+            <div className="ai-hero dimmed">
+                <div className="ai-illustration">
+                    <img className="ai-burst" src={ornament} alt="" />
+                    <img className="ai-face" src={aiLaughFace} alt="" />
                 </div>
             </div>
 
-            {/* Footer still visible behind */}
-            <div className="ai-footer">
+            {/* Result Card Modal - Floating */}
+            <div className="ai-result-modal">
+                <div className="ai-result-card-wrapper">
+                    <button className="ai-result-close" onClick={handleBack}>
+                        <img src={iconClose} alt="" />
+                    </button>
+                    <div className="ai-result-card">
+                        <div className="ai-result-media">
+                            {mediaType === 'video' ? (
+                                <video src={previewUrl} controls autoPlay loop />
+                            ) : (
+                                <img src={previewUrl} alt="Generated meme" />
+                            )}
+                        </div>
+                        <button className="ai-result-next" onClick={handleNextFromResult}>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer - dimmed behind modal */}
+            <div className="ai-footer dimmed">
                 <div className="ai-credits-row">
                     <span className="credit-pill green">
                         <img src={iconPowerUp} alt="" />
@@ -544,152 +575,161 @@ export function CreateMemePage() {
         </div>
     );
 
-    // ============ Render Post Form Step (Updated per Figma) ============
-    const renderPostFormStep = () => {
-        console.log('Rendering post form, textOverlays:', textOverlays); // Debug
+    // ============ Render Post Form Step ============
+    const renderPostFormStep = () => (
+        <div className="create-post-page">
+            <header className="create-header">
+                <button className="icon-button" onClick={handleBack}>
+                    <img src={iconBack} alt="" />
+                </button>
+                <span className="create-title">Post Editor</span>
+                <button className="icon-button" onClick={handleClose}>
+                    <img src={iconClose} alt="" />
+                </button>
+            </header>
 
-        return (
-            <div className="create-post-page">
-                <header className="create-header">
-                    <button className="icon-button" onClick={handleBack}>
-                        <img src={iconBack} alt="" />
-                    </button>
-                    <span className="create-title">Post Editor</span>
-                    <button className="icon-button" onClick={handleClose}>
-                        <img src={iconClose} alt="" />
-                    </button>
-                </header>
+            <div className="post-body">
+                {/* Media Preview - Full width, no border */}
+                <div className="post-preview">
+                    {mediaType === 'video' ? (
+                        <video src={previewUrl || mediaUrl} controls />
+                    ) : (
+                        <img src={previewUrl || mediaUrl} alt="Preview" />
+                    )}
 
-                <div className="post-body">
-                    {/* Media Preview - Full width, no border */}
-                    <div className="post-preview">
-                        {mediaType === 'video' ? (
-                            <video src={previewUrl || mediaUrl} controls />
-                        ) : (
-                            <img src={previewUrl || mediaUrl} alt="Preview" />
-                        )}
+                    {/* Text overlays layer */}
+                    {textOverlays.length > 0 && (
+                        <div className="text-overlays-layer">
+                            {textOverlays.map(overlay => {
+                                const fontFamily =
+                                    overlay.font === 'happy' ? "'Comic Sans MS', cursive" :
+                                        overlay.font === 'vintage' ? "'Times New Roman', serif" :
+                                            overlay.font === 'excited' ? "'Impact', sans-serif" :
+                                                "'Arial Black', sans-serif";
 
-                        {/* Text overlays layer */}
-                        {textOverlays.length > 0 && (
-                            <div className="text-overlays-layer">
-                                {textOverlays.map(overlay => {
-                                    let translateX = '-50%';
-                                    if (overlay.align === 'left') translateX = '0%';
-                                    if (overlay.align === 'right') translateX = '-100%';
+                                const baseStyle: React.CSSProperties = {
+                                    position: 'absolute',
+                                    left: `${overlay.x}%`,
+                                    top: `${overlay.y}%`,
+                                    transform: 'translate(-50%, -50%)',
+                                    fontFamily,
+                                    fontSize: `${overlay.fontSize}px`,
+                                    color: overlay.color,
+                                    textAlign: overlay.align,
+                                    whiteSpace: 'nowrap',
+                                };
 
-                                    return (
-                                        <div
-                                            key={overlay.id}
-                                            className="preview-text-overlay"
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${overlay.x}%`,
-                                                top: `${overlay.y}%`,
-                                                transform: `translate(${translateX}, -50%)`,
-                                                fontFamily: overlay.font === 'happy' ? "'Comic Sans MS', cursive" :
-                                                    overlay.font === 'vintage' ? "'Times New Roman', serif" :
-                                                        overlay.font === 'excited' ? "'Impact', sans-serif" :
-                                                            "'Arial Black', sans-serif",
-                                                fontSize: `${overlay.fontSize}px`,
-                                                color: overlay.color,
-                                                textAlign: overlay.align,
-                                                whiteSpace: 'nowrap',
-                                                ...(overlay.style === 'fill' && {
-                                                    backgroundColor: 'rgba(0,0,0,0.7)',
-                                                    padding: '8px 16px',
-                                                }),
-                                                ...(overlay.style === 'fill-round' && {
-                                                    backgroundColor: overlay.color,
-                                                    padding: '8px 20px',
-                                                    borderRadius: '999px',
-                                                    color: overlay.color === '#FFFFFF' || overlay.color === '#FFD600' ? '#1F1F1F' : '#FFFFFF',
-                                                }),
-                                                ...(overlay.style === 'text' && {
-                                                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                                                }),
-                                            }}
-                                        >
-                                            {overlay.text}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
+                                let finalStyle = baseStyle;
 
-                    <div className="post-form">
-                        {/* Aa Button - Opens Text Editor */}
-                        <button
-                            className="add-text-btn"
-                            onClick={handleOpenTextEditor}
-                            title="Add text overlay"
-                        >
-                            <span className="aa-icon">Aa</span>
-                        </button>
+                                if (overlay.style === 'fill') {
+                                    finalStyle = {
+                                        ...baseStyle,
+                                        backgroundColor: 'rgba(0,0,0,0.6)',
+                                        padding: '8px 16px',
+                                        borderRadius: '4px',
+                                    };
+                                } else if (overlay.style === 'fill-round') {
+                                    const isLightColor = overlay.color === '#FFFFFF' || overlay.color === '#FFD600';
+                                    finalStyle = {
+                                        ...baseStyle,
+                                        backgroundColor: overlay.color,
+                                        padding: '10px 24px',
+                                        borderRadius: '999px',
+                                        color: isLightColor ? '#1F1F1F' : '#FFFFFF',
+                                    };
+                                } else {
+                                    finalStyle = {
+                                        ...baseStyle,
+                                        textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.5)',
+                                    };
+                                }
 
-                        {/* Description */}
-                        <div className="form-group">
-                            <div className="post-input-wrap">
-                                <textarea
-                                    placeholder="Add description..."
-                                    value={formData.caption}
-                                    onChange={e => handleCaptionChange(e.target.value)}
-                                    maxLength={MAX_CAPTION}
-                                />
-                                <span className="char-count">{formData.caption.length}/{MAX_CAPTION}</span>
-                            </div>
+                                return (
+                                    <div
+                                        key={overlay.id}
+                                        className="preview-text-overlay"
+                                        style={finalStyle}
+                                    >
+                                        {overlay.text}
+                                    </div>
+                                );
+                            })}
                         </div>
-
-                        {/* Tags */}
-                        <div className="form-group">
-                            <div className="post-tags-wrap">
-                                <div className="tag-list">
-                                    {formData.tags.map(tag => (
-                                        <span key={`tag-${tag}`} className="tag-chip">
-                                            #{tag}
-                                            <button onClick={() => handleRemoveTag(tag)}>×</button>
-                                        </span>
-                                    ))}
-                                </div>
-                                <input
-                                    className="tag-input"
-                                    placeholder={formData.tags.length < MAX_TAGS ? "Add tag" : ""}
-                                    value={tagInput}
-                                    onChange={e => setTagInput(e.target.value)}
-                                    onKeyDown={handleTagKeyDown}
-                                    onBlur={handleAddTag}
-                                    disabled={formData.tags.length >= MAX_TAGS}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Visibility */}
-                        <button
-                            className="visibility-btn"
-                            onClick={() => setShowVisibilitySheet(true)}
-                        >
-                            <span className="vis-label">Share to</span>
-                            <span className="vis-value">
-                                {formData.visibility === 'public' ? 'Everyone' : 'Only Me'}
-                            </span>
-                            <span className="vis-caret">▾</span>
-                        </button>
-                    </div>
+                    )}
                 </div>
 
-                {/* Post Button - Fixed at bottom */}
-                <div className="post-footer">
+                <div className="post-form">
+                    {/* Aa Button - Opens Text Editor */}
                     <button
-                        className="post-cta"
-                        onClick={handlePostMeme}
-                        disabled={createMemeMutation.isPending}
+                        className="add-text-btn"
+                        onClick={handleOpenTextEditor}
+                        title="Add text overlay"
                     >
-                        {createMemeMutation.isPending ? 'Posting...' : 'Post Meme'}
+                        <span className="aa-icon">Aa</span>
+                    </button>
+
+                    {/* Description */}
+                    <div className="form-group">
+                        <div className="post-input-wrap">
+                            <textarea
+                                placeholder="Add description..."
+                                value={formData.caption}
+                                onChange={e => handleCaptionChange(e.target.value)}
+                                maxLength={MAX_CAPTION}
+                            />
+                            <span className="char-count">{formData.caption.length}/{MAX_CAPTION}</span>
+                        </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="form-group">
+                        <div className="post-tags-wrap">
+                            <div className="tag-list">
+                                {formData.tags.map(tag => (
+                                    <span key={`tag-${tag}`} className="tag-chip">
+                                        #{tag}
+                                        <button onClick={() => handleRemoveTag(tag)}>×</button>
+                                    </span>
+                                ))}
+                            </div>
+                            <input
+                                className="tag-input"
+                                placeholder={formData.tags.length < MAX_TAGS ? "Add tag" : ""}
+                                value={tagInput}
+                                onChange={e => setTagInput(e.target.value)}
+                                onKeyDown={handleTagKeyDown}
+                                onBlur={handleAddTag}
+                                disabled={formData.tags.length >= MAX_TAGS}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Visibility */}
+                    <button
+                        className="visibility-btn"
+                        onClick={() => setShowVisibilitySheet(true)}
+                    >
+                        <span className="vis-label">Share to</span>
+                        <span className="vis-value">
+                            {formData.visibility === 'public' ? 'Everyone' : 'Only Me'}
+                        </span>
+                        <span className="vis-caret">▾</span>
                     </button>
                 </div>
             </div>
-        );
-    };
+
+            {/* Post Button - Fixed at bottom */}
+            <div className="post-footer">
+                <button
+                    className="post-cta"
+                    onClick={handlePostMeme}
+                    disabled={createMemeMutation.isPending}
+                >
+                    {createMemeMutation.isPending ? 'Posting...' : 'Post Meme'}
+                </button>
+            </div>
+        </div>
+    );
 
     // ============ Render Power Up Modal ============
     const renderPowerUpModal = () => {
@@ -787,7 +827,6 @@ export function CreateMemePage() {
             {/* Text Editor Modal - key forces remount on open */}
             {showTextEditor && (
                 <TextEditorModal
-                    key={`text-editor-${Date.now()}`}
                     isOpen={showTextEditor}
                     onClose={() => setShowTextEditor(false)}
                     onSave={handleSaveTextOverlays}
