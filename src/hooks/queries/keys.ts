@@ -18,6 +18,8 @@ export const queryKeys = {
         saved: () => [...queryKeys.memes.all, 'saved'] as const,
         search: (query: string) => ['memes', 'search', query] as const,
         trendingTags: () => ['memes', 'tags', 'trending'] as const,
+        loved: () => [...queryKeys.memes.all, 'loved'] as const,
+
     },
 
     // Wallet

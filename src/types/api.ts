@@ -119,6 +119,10 @@ export interface UserProfile {
     solanaAddress?: string;
     referralCode: string;
     isActivated: boolean;
+    followerCount?: number;
+    followingCount?: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface UserBalances {

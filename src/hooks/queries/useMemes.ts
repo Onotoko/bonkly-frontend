@@ -47,16 +47,23 @@ export const useMeme = (id: string) => {
 /**
  * Get user's memes
  */
-export const useUserMemes = (username: string, limit = 20) => {
+export const useUserMemes = (
+    username: string,
+    visibility?: 'public' | 'private' | 'all',
+    limit = 20
+) => {
     return useInfiniteQuery({
-        queryKey: queryKeys.user.memes(username),
+        queryKey: visibility
+            ? [...queryKeys.user.memes(username), visibility]
+            : queryKeys.user.memes(username),
         queryFn: ({ pageParam = 1 }) =>
-            memeService.getUserMemes(username, { page: pageParam, limit }),
+            memeService.getUserMemes(username, { page: pageParam, limit, visibility }),
         initialPageParam: 1,
         getNextPageParam: getNextPage,
         enabled: !!username,
     });
 };
+
 
 // ============ Feeds ============
 
@@ -254,5 +261,17 @@ export const useTrendingTags = (limit = 10) => {
         queryKey: queryKeys.memes.trendingTags(),
         queryFn: () => memeService.getTrendingTags(limit),
         staleTime: 5 * 60 * 1000,
+    });
+};
+
+export const useLovedMemes = (limit = 20) => {
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    return useInfiniteQuery({
+        queryKey: queryKeys.memes.loved(),
+        queryFn: ({ pageParam = 1 }) =>
+            memeService.getLoved({ page: pageParam, limit }),
+        initialPageParam: 1,
+        getNextPageParam: getNextPage,
+        enabled: isAuthenticated,
     });
 };

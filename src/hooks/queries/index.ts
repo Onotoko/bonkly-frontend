@@ -107,6 +107,6 @@ export {
     useCheckAddDeposit,
 } from './useCheckAddDeposit'
 
-export { useSearchMemes, useTrendingTags } from './useMemes';
+export { useSearchMemes, useTrendingTags, useLovedMemes } from './useMemes';
 
 export { useDebounce } from './useDebounce';

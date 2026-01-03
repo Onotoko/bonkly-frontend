@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState } from 'react';
 
 // Icons
 import iconClose from '@/assets/icons/icon-close.svg';
@@ -10,10 +10,10 @@ export interface SelectedMedia {
 }
 
 interface RecentMedia {
+    file: File;
     previewUrl: string;
     type: 'image' | 'video';
     name: string;
-    lastUsed: number;
 }
 
 interface MediaPickerModalProps {
@@ -24,47 +24,35 @@ interface MediaPickerModalProps {
     uploadProgress?: number;
 }
 
-const RECENT_MEDIA_KEY = 'bonkly_recent_media';
+// Session-only recent media store
+const recentMediaStore: RecentMedia[] = [];
 const MAX_RECENT = 9;
 
-// Load recent media from localStorage
-const loadRecentMedia = (): RecentMedia[] => {
-    try {
-        const stored = localStorage.getItem(RECENT_MEDIA_KEY);
-        if (stored) {
-            return JSON.parse(stored);
-        }
-    } catch {
-        // Ignore errors
-    }
-    return [];
-};
+// Clear invalid localStorage on module load
+const RECENT_MEDIA_KEY = 'bonkly_recent_media';
+try {
+    localStorage.removeItem(RECENT_MEDIA_KEY);
+} catch {
+    // Ignore
+}
 
-// Save recent media to localStorage
-const saveRecentMedia = (media: RecentMedia[]) => {
-    try {
-        localStorage.setItem(RECENT_MEDIA_KEY, JSON.stringify(media.slice(0, MAX_RECENT)));
-    } catch {
-        // Ignore errors (quota exceeded, etc.)
-    }
-};
-
-// Add media to recent list
 const addToRecent = (file: File, previewUrl: string, type: 'image' | 'video') => {
-    const recent = loadRecentMedia();
+    const existingIndex = recentMediaStore.findIndex(
+        m => m.name === file.name && m.file.size === file.size
+    );
+    if (existingIndex !== -1) {
+        URL.revokeObjectURL(recentMediaStore[existingIndex].previewUrl);
+        recentMediaStore.splice(existingIndex, 1);
+    }
 
-    // Remove if already exists
-    const filtered = recent.filter(m => m.name !== file.name);
+    recentMediaStore.unshift({ file, previewUrl, type, name: file.name });
 
-    // Add to beginning
-    const newRecent: RecentMedia = {
-        previewUrl,
-        type,
-        name: file.name,
-        lastUsed: Date.now(),
-    };
-
-    saveRecentMedia([newRecent, ...filtered]);
+    while (recentMediaStore.length > MAX_RECENT) {
+        const removed = recentMediaStore.pop();
+        if (removed) {
+            URL.revokeObjectURL(removed.previewUrl);
+        }
+    }
 };
 
 export function MediaPickerModal({
@@ -76,18 +64,19 @@ export function MediaPickerModal({
 }: MediaPickerModalProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedMedia, setSelectedMedia] = useState<SelectedMedia | null>(null);
-    const [recentMedia, setRecentMedia] = useState<RecentMedia[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const [hasInitialized, setHasInitialized] = useState(false);
+    // Counter to force re-render when recent changes
+    const [, setUpdateCounter] = useState(0);
 
-    // Handle file selection from device
-    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Derive recent media from store (read during render is fine, just not refs)
+    const recentMedia = [...recentMediaStore];
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setError(null);
 
-        // Validate file type
         const isImage = file.type.startsWith('image/');
         const isVideo = file.type.startsWith('video/');
 
@@ -96,7 +85,6 @@ export function MediaPickerModal({
             return;
         }
 
-        // Validate file size (max 50MB)
         const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
             setError('File is too large. Maximum size is 50MB.');
@@ -106,105 +94,57 @@ export function MediaPickerModal({
         const previewUrl = URL.createObjectURL(file);
         const type = isVideo ? 'video' : 'image';
 
-        // Set selected media
-        setSelectedMedia({
-            file,
-            previewUrl,
-            type,
-        });
-
-        // Add to recent
         addToRecent(file, previewUrl, type);
-        setRecentMedia(loadRecentMedia());
+        setSelectedMedia({ file, previewUrl, type });
+        // Force re-render to show updated recent
+        setUpdateCounter(c => c + 1);
 
-        // Reset input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
-    }, []);
+    };
 
-    // Handle select from device button
     const handleSelectFromDevice = () => {
         fileInputRef.current?.click();
     };
 
-    // Handle click on selected media (to change it)
     const handleClickSelected = () => {
         if (!isUploading) {
             fileInputRef.current?.click();
         }
     };
 
-    // Handle select from recent
-    const handleSelectRecent = async (recent: RecentMedia) => {
+    const handleSelectRecent = (recent: RecentMedia) => {
         if (isUploading) return;
-
-        try {
-            // For recent items, we need to fetch the blob from the URL
-            const response = await fetch(recent.previewUrl);
-            const blob = await response.blob();
-            const file = new File([blob], recent.name, { type: blob.type });
-
-            setSelectedMedia({
-                file,
-                previewUrl: recent.previewUrl,
-                type: recent.type,
-            });
-        } catch {
-            // If blob URL expired, remove from recent
-            const updated = recentMedia.filter(m => m.previewUrl !== recent.previewUrl);
-            saveRecentMedia(updated);
-            setRecentMedia(updated);
-            setError('This image is no longer available. Please select again.');
-        }
+        setSelectedMedia({
+            file: recent.file,
+            previewUrl: recent.previewUrl,
+            type: recent.type,
+        });
     };
 
-    // Handle next button
     const handleNext = () => {
         if (selectedMedia) {
             onNext(selectedMedia);
         }
     };
 
-    // Handle close
     const handleClose = () => {
-        if (selectedMedia) {
-            URL.revokeObjectURL(selectedMedia.previewUrl);
-        }
         setSelectedMedia(null);
         setError(null);
-        setHasInitialized(false);
         onClose();
     };
 
-    // Handle backdrop click
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget && !isUploading) {
             handleClose();
         }
     };
 
-    // Initialize when overlay becomes visible (via onAnimationEnd or first interaction)
-    const handleOverlayMount = useCallback(() => {
-        if (!hasInitialized) {
-            setRecentMedia(loadRecentMedia());
-            setSelectedMedia(null);
-            setError(null);
-            setHasInitialized(true);
-        }
-    }, [hasInitialized]);
-
     if (!isOpen) return null;
-
-    // Trigger initialization on first render when open
-    if (!hasInitialized) {
-        // Use setTimeout to defer state update
-        setTimeout(handleOverlayMount, 0);
-    }
 
     return (
         <>
-            {/* Hidden file input */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -213,10 +153,8 @@ export function MediaPickerModal({
                 style={{ display: 'none' }}
             />
 
-            {/* Modal overlay */}
             <div className="media-picker-overlay" onClick={handleBackdropClick}>
                 <div className="media-picker-sheet">
-                    {/* Header */}
                     <header className="media-picker-header">
                         <h3 className="media-picker-title">Upload Media</h3>
                         <button
@@ -228,7 +166,6 @@ export function MediaPickerModal({
                         </button>
                     </header>
 
-                    {/* Toolbar */}
                     <div className="media-picker-toolbar">
                         <button
                             className="media-filter-btn"
@@ -246,14 +183,10 @@ export function MediaPickerModal({
                         </button>
                     </div>
 
-                    {/* Error message */}
                     {error && (
-                        <div className="media-picker-error">
-                            {error}
-                        </div>
+                        <div className="media-picker-error">{error}</div>
                     )}
 
-                    {/* Upload progress */}
                     {isUploading && (
                         <div className="media-picker-progress">
                             <div
@@ -263,14 +196,11 @@ export function MediaPickerModal({
                         </div>
                     )}
 
-                    {/* Media Grid */}
                     <div className="media-picker-grid">
-                        {/* Selected media - always first */}
                         {selectedMedia && (
                             <div
                                 className="media-item selected"
                                 onClick={handleClickSelected}
-                                title="Tap to change"
                             >
                                 {selectedMedia.type === 'video' ? (
                                     <video src={selectedMedia.previewUrl} />
@@ -282,12 +212,11 @@ export function MediaPickerModal({
                             </div>
                         )}
 
-                        {/* Recent media (excluding currently selected) */}
                         {recentMedia
                             .filter(m => m.previewUrl !== selectedMedia?.previewUrl)
                             .map((recent, index) => (
                                 <div
-                                    key={`recent-${index}-${recent.name}`}
+                                    key={`recent-${recent.name}-${index}`}
                                     className="media-item recent"
                                     onClick={() => handleSelectRecent(recent)}
                                 >
@@ -299,7 +228,6 @@ export function MediaPickerModal({
                                 </div>
                             ))}
 
-                        {/* Empty state or add more button */}
                         {!selectedMedia && recentMedia.length === 0 && (
                             <div
                                 className="media-item add-media"
@@ -314,8 +242,7 @@ export function MediaPickerModal({
                             </div>
                         )}
 
-                        {/* Add button when has recent but no selection */}
-                        {!selectedMedia && recentMedia.length > 0 && (
+                        {(selectedMedia || recentMedia.length > 0) && (
                             <div
                                 className="media-item add-more"
                                 onClick={handleSelectFromDevice}
@@ -325,11 +252,12 @@ export function MediaPickerModal({
                         )}
                     </div>
 
-                    {/* Helper text */}
                     <p className="media-picker-help">
                         {selectedMedia
                             ? 'Tap the image to change selection'
-                            : 'Select an image or video from your device'
+                            : recentMedia.length > 0
+                                ? 'Select from recent or add new'
+                                : 'Select an image or video from your device'
                         }
                     </p>
                 </div>

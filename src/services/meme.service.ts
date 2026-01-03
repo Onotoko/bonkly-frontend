@@ -84,8 +84,15 @@ export const memeService = {
      * GET /memes/user/:username
      * Get user's memes (public)
      */
-    getUserMemes: (username: string, params?: FeedParams) =>
-        api.get<MemeListResponse>(`/memes/user/${username}${buildQuery(params)}`),
+    getUserMemes: (username: string, params?: UserMemesParams) => {
+        const queryParams = new URLSearchParams();
+        if (params?.page) queryParams.set('page', params.page.toString());
+        if (params?.limit) queryParams.set('limit', params.limit.toString());
+        if (params?.visibility) queryParams.set('visibility', params.visibility);
+
+        const query = queryParams.toString();
+        return api.get<MemeListResponse>(`/memes/user/${username}${query ? `?${query}` : ''}`);
+    },
     /**
      * Search memes
      * GET /memes/search?q=query&page=1&limit=20
@@ -104,4 +111,11 @@ export const memeService = {
         api.get<TrendingTagsResponse>(
             `/memes/tags/trending${buildQuery({ limit })}`,
         ),
+
+    /**
+     * GET /memes/loved/list
+     * User's loved memes
+     */
+    getLoved: (params?: FeedParams) =>
+        api.get<MemeListResponse>(`/memes/loved/list${buildQuery(params)}`),
 };

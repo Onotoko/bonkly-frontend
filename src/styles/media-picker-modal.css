@@ -134,10 +134,12 @@
     flex: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: min-content;
     gap: 2px;
     padding: 2px;
     overflow-y: auto;
     background: #f2f4f7;
+    align-content: start;
 }
 
 .media-item {
@@ -153,6 +155,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .media-item.selected {
@@ -212,7 +215,7 @@
 
 /* Add media button (empty state) */
 .media-item.add-media {
-    grid-column: span 3;
+    grid-column: 1 / -1;
     aspect-ratio: auto;
     min-height: 200px;
     background: #fff;
@@ -249,13 +252,14 @@
     font-weight: 600;
 }
 
-/* Add more button (when media selected) */
+/* Add more button (inline with grid) */
 .media-item.add-more {
-    background: #f2f4f7;
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px dashed #d3d7de;
+    aspect-ratio: 1 / 1;
 }
 
 .add-more-icon {

@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores';
 import { userService } from '@/services/user.service';
-import { memeService } from '@/services/meme.service';
-import { authService } from '@/services/auth.service';
 import { uploadService } from '@/services/upload.service';
+import { authService } from '@/services/auth.service';
 import { CreateMemeSheet } from '@/components/meme';
 import { ResultModal } from '@/components/ui';
+
+// React Query hooks
+import { useUserMemes, useLovedMemes } from '@/hooks/queries';
+
 import type { Meme } from '@/types/api';
 
 // Icons
@@ -20,7 +23,6 @@ import iconArrowRight from '@/assets/icons/icon-arrow-right.svg';
 import iconProfileFeedDefault from '@/assets/icons/icon-profile-feed.svg';
 import iconProfileLockpadDefault from '@/assets/icons/icon-profile-lockpad.svg';
 import iconProfileLoveDefault from '@/assets/icons/icon-profile-love.svg';
-
 import iconProfileFeedActive from '@/assets/icons/icon-meme-image.svg';
 import iconProfileLockpadActive from '@/assets/icons/icon-profile-lockpad.svg';
 import iconProfileLoveActive from '@/assets/icons/icon-heart-active.svg';
@@ -29,19 +31,23 @@ import iconProfileLoveActive from '@/assets/icons/icon-heart-active.svg';
 import emptyMeme from '@/assets/illustrations/empty-laugh.png';
 import avatarDefault from '@/assets/images/avatar-default.png';
 
-type ProfileTab = 'memes' | 'saved' | 'loved';
+type ProfileTab = 'public' | 'private' | 'loved';
 
 export function ProfilePage() {
     const navigate = useNavigate();
     const { user, logout, setUser } = useAuthStore();
+    const gridRef = useRef<HTMLElement>(null);
 
     // UI State
-    const [activeTab, setActiveTab] = useState<ProfileTab>('memes');
+    const [activeTab, setActiveTab] = useState<ProfileTab>('public');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isAccountOpen, setIsAccountOpen] = useState(false);
     const [isLogoutOpen, setIsLogoutOpen] = useState(false);
     const [isMemeModalOpen, setIsMemeModalOpen] = useState(false);
+
+    // Social counts (fetched separately since User type doesn't include them)
+    const [socialCounts, setSocialCounts] = useState({ followerCount: 0, followingCount: 0 });
 
     // Result modal state
     const [resultModal, setResultModal] = useState<{
@@ -51,9 +57,85 @@ export function ProfilePage() {
         message: string;
     }>({ isOpen: false, type: 'success', title: '', message: '' });
 
-    // Data state
-    const [memes, setMemes] = useState<Meme[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    // React Query - User's PUBLIC memes (Tab 1)
+    const publicMemesQuery = useUserMemes(user?.username || '', 'public');
+    const publicMemes = publicMemesQuery.data?.pages.flatMap((page) => page.memes) ?? [];
+
+    // React Query - User's PRIVATE memes (Tab 2)
+    const privateMemesQuery = useUserMemes(user?.username || '', 'private');
+    const privateMemes = privateMemesQuery.data?.pages.flatMap((page) => page.memes) ?? [];
+
+    // React Query - Loved memes (Tab 3)
+    const lovedQuery = useLovedMemes();
+    const lovedMemes = lovedQuery.data?.pages.flatMap((page) => page.memes) ?? [];
+
+    // Debug log
+    useEffect(() => {
+        console.log('ProfilePage - Username:', user?.username);
+        console.log('ProfilePage - Public query status:', publicMemesQuery.status);
+        console.log('ProfilePage - Public memes:', publicMemes);
+    }, [user?.username, publicMemesQuery.status, publicMemes]);
+
+    // Fetch social counts on mount
+    useEffect(() => {
+        if (user?.username) {
+            userService.getByUsername(user.username)
+                .then((profile) => {
+                    setSocialCounts({
+                        followerCount: profile.followerCount ?? 0,
+                        followingCount: profile.followingCount ?? 0,
+                    });
+                })
+                .catch(console.error);
+        }
+    }, [user?.username]);
+
+    // Get current tab data
+    const getCurrentTabData = () => {
+        switch (activeTab) {
+            case 'public':
+                return {
+                    memes: publicMemes,
+                    isLoading: publicMemesQuery.isLoading,
+                    hasNextPage: publicMemesQuery.hasNextPage,
+                    isFetchingNextPage: publicMemesQuery.isFetchingNextPage,
+                    fetchNextPage: publicMemesQuery.fetchNextPage,
+                };
+            case 'private':
+                return {
+                    memes: privateMemes,
+                    isLoading: privateMemesQuery.isLoading,
+                    hasNextPage: privateMemesQuery.hasNextPage,
+                    isFetchingNextPage: privateMemesQuery.isFetchingNextPage,
+                    fetchNextPage: privateMemesQuery.fetchNextPage,
+                };
+            case 'loved':
+                return {
+                    memes: lovedMemes,
+                    isLoading: lovedQuery.isLoading,
+                    hasNextPage: lovedQuery.hasNextPage,
+                    isFetchingNextPage: lovedQuery.isFetchingNextPage,
+                    fetchNextPage: lovedQuery.fetchNextPage,
+                };
+        }
+    };
+
+    const { memes, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = getCurrentTabData();
+
+    // Infinite scroll handler
+    const handleScroll = useCallback(() => {
+        if (!gridRef.current || isFetchingNextPage || !hasNextPage) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 200) {
+            fetchNextPage();
+        }
+    }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
 
     // Edit profile state
     const [editForm, setEditForm] = useState({
@@ -78,26 +160,6 @@ export function ProfilePage() {
             });
         }
     }, [user]);
-
-    // Fetch user memes
-    useEffect(() => {
-        if (activeTab === 'memes' && user) {
-            fetchUserMemes();
-        }
-    }, [activeTab, user]);
-
-    const fetchUserMemes = async () => {
-        if (!user?.username) return;
-        setIsLoading(true);
-        try {
-            const response = await memeService.getUserMemes(user.username);
-            setMemes(response.memes);
-        } catch (err) {
-            console.error('Failed to fetch memes:', err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleOpenEditProfile = () => {
         setIsSettingsOpen(false);
@@ -127,11 +189,9 @@ export function ProfilePage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Reset error state
         setUploadError(null);
         setIsUploading(true);
 
-        // Show preview immediately
         const reader = new FileReader();
         reader.onload = (ev) => setPreviewImage(ev.target?.result as string);
         reader.readAsDataURL(file);
@@ -142,7 +202,6 @@ export function ProfilePage() {
         } catch (err) {
             console.error('Upload failed:', err);
             setUploadError('Failed to upload image. Please try again.');
-            // Clear preview since upload failed
             setPreviewImage(null);
         } finally {
             setIsUploading(false);
@@ -150,10 +209,7 @@ export function ProfilePage() {
     };
 
     const handleSaveProfile = async () => {
-        // Prevent save if upload is in progress
         if (isUploading) return;
-
-        // Prevent save if there was an upload error
         if (uploadError) {
             setResultModal({
                 isOpen: true,
@@ -185,7 +241,7 @@ export function ProfilePage() {
                 isOpen: true,
                 type: 'error',
                 title: 'Update Failed',
-                message: "We couldn't update your profile. This might be a network issue - please try again.",
+                message: "We couldn't update your profile. Please try again.",
             });
         } finally {
             setIsSubmitting(false);
@@ -224,6 +280,31 @@ export function ProfilePage() {
         return count.toString();
     };
 
+    // Get empty state message
+    const getEmptyMessage = () => {
+        switch (activeTab) {
+            case 'public':
+                return 'Make your most best meme';
+            case 'private':
+                return 'No private memes yet';
+            case 'loved':
+                return 'No loved memes yet';
+        }
+    };
+
+    // Navigate to followers/following pages
+    const handleFollowersClick = () => {
+        if (user?.username) {
+            navigate(ROUTES.FOLLOWERS.replace(':username', user.username));
+        }
+    };
+
+    const handleFollowingClick = () => {
+        if (user?.username) {
+            navigate(ROUTES.FOLLOWING.replace(':username', user.username));
+        }
+    };
+
     return (
         <div className="profile-shell">
             {/* Header */}
@@ -234,7 +315,7 @@ export function ProfilePage() {
                 </button>
             </header>
 
-            {/* Hero Section - Horizontal layout */}
+            {/* Hero Section */}
             <section className="profile-hero">
                 <div className="profile-avatar">
                     <img src={user?.profilePicture || avatarDefault} alt="Avatar" />
@@ -243,14 +324,14 @@ export function ProfilePage() {
                     <div className="profile-name">{user?.displayName || 'User'}</div>
                     <div className="profile-handle">@{user?.username || 'username'}</div>
                     <div className="profile-stats">
-                        <div className="stat">
-                            <div className="stat-value">{formatCount(0)}</div>
+                        <button className="stat" onClick={handleFollowingClick}>
+                            <div className="stat-value">{formatCount(socialCounts.followingCount)}</div>
                             <div className="stat-label">Following</div>
-                        </div>
-                        <div className="stat">
-                            <div className="stat-value">{formatCount(0)}</div>
+                        </button>
+                        <button className="stat" onClick={handleFollowersClick}>
+                            <div className="stat-value">{formatCount(socialCounts.followerCount)}</div>
                             <div className="stat-label">Followers</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -264,27 +345,27 @@ export function ProfilePage() {
                 )}
                 <button className="add-bio-btn" onClick={handleOpenEditProfile}>
                     <span className="add-bio-icon">+</span>
-                    <span>Add Bio</span>
+                    <span>{user?.bio ? 'Edit Bio' : 'Add Bio'}</span>
                 </button>
             </section>
 
             {/* Tabs */}
             <nav className="profile-tabs">
                 <button
-                    className={`tab-item ${activeTab === 'memes' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('memes')}
+                    className={`tab-item ${activeTab === 'public' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('public')}
                 >
                     <img
-                        src={activeTab === 'memes' ? iconProfileFeedActive : iconProfileFeedDefault}
+                        src={activeTab === 'public' ? iconProfileFeedActive : iconProfileFeedDefault}
                         alt=""
                     />
                 </button>
                 <button
-                    className={`tab-item ${activeTab === 'saved' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('saved')}
+                    className={`tab-item ${activeTab === 'private' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('private')}
                 >
                     <img
-                        src={activeTab === 'saved' ? iconProfileLockpadActive : iconProfileLockpadDefault}
+                        src={activeTab === 'private' ? iconProfileLockpadActive : iconProfileLockpadDefault}
                         alt=""
                     />
                 </button>
@@ -305,23 +386,48 @@ export function ProfilePage() {
                     <p>Loading...</p>
                 </div>
             ) : memes.length > 0 ? (
-                <section className="profile-grid">
-                    {memes.map((meme) => (
-                        <img
-                            key={meme.id}
-                            src={meme.mediaUrl}
-                            alt=""
-                            onClick={() => navigate(`/meme/${meme.id}`)}
-                        />
-                    ))}
-                </section>
+                <>
+                    <section className="profile-grid" ref={gridRef}>
+                        {memes.map((meme: Meme) => (
+                            meme.mediaType === 'video' ? (
+                                <video
+                                    key={meme.id}
+                                    src={meme.mediaUrl}
+                                    onClick={() => navigate(`/meme/${meme.id}`)}
+                                    muted
+                                    playsInline
+                                    preload="metadata"
+                                    poster=""
+                                    onLoadedData={(e) => {
+                                        const video = e.currentTarget;
+                                        video.currentTime = 0.1;
+                                    }}
+                                />
+                            ) : (
+                                <img
+                                    key={meme.id}
+                                    src={meme.mediaUrl}
+                                    alt=""
+                                    onClick={() => navigate(`/meme/${meme.id}`)}
+                                />
+                            )
+                        ))}
+                    </section>
+                    {isFetchingNextPage && (
+                        <div className="profile-loading-more">
+                            <p>Loading more...</p>
+                        </div>
+                    )}
+                </>
             ) : (
                 <section className="profile-empty">
                     <img src={emptyMeme} alt="" className="empty-icon" />
-                    <p>Make your most best meme</p>
-                    <button className="create-meme-btn" onClick={() => setIsMemeModalOpen(true)}>
-                        Create a meme
-                    </button>
+                    <p>{getEmptyMessage()}</p>
+                    {activeTab === 'public' && (
+                        <button className="create-meme-btn" onClick={() => setIsMemeModalOpen(true)}>
+                            Create a meme
+                        </button>
+                    )}
                 </section>
             )}
 
@@ -360,7 +466,7 @@ export function ProfilePage() {
                 </div>
             </div>
 
-            {/* Edit Profile Modal - Full Screen */}
+            {/* Edit Profile Modal */}
             <div className={`edit-profile-modal ${isEditProfileOpen ? 'open' : ''}`}>
                 <div className="edit-profile-sheet">
                     <header className="edit-header">
@@ -395,9 +501,7 @@ export function ProfilePage() {
                                     disabled={isUploading}
                                 />
                             </label>
-                            {uploadError && (
-                                <p className="edit-photo-error">{uploadError}</p>
-                            )}
+                            {uploadError && <p className="edit-photo-error">{uploadError}</p>}
                         </div>
                         <div className="edit-fields">
                             <input
@@ -410,16 +514,12 @@ export function ProfilePage() {
                                 }
                             />
                             <div className="edit-username-field">
-                                <input
-                                    type="text"
-                                    value={`@${editForm.username}`}
-                                    disabled
-                                />
+                                <input type="text" value={`@${editForm.username}`} disabled />
                                 <span className="edit-hint">Only once</span>
                             </div>
                             <textarea
                                 className="edit-bio-input"
-                                placeholder="Write something funny, iconic, or mysterious about yourself..."
+                                placeholder="Write something funny..."
                                 value={editForm.bio}
                                 onChange={(e) =>
                                     setEditForm((prev) => ({ ...prev, bio: e.target.value }))
@@ -439,7 +539,7 @@ export function ProfilePage() {
                 </div>
             </div>
 
-            {/* Account Modal - Full Screen */}
+            {/* Account Modal */}
             <div className={`account-modal ${isAccountOpen ? 'open' : ''}`}>
                 <div className="account-sheet">
                     <header className="account-header">
@@ -463,7 +563,7 @@ export function ProfilePage() {
                 </div>
             </div>
 
-            {/* Logout Modal - Bottom Sheet */}
+            {/* Logout Modal */}
             <div
                 className={`logout-modal ${isLogoutOpen ? 'open' : ''}`}
                 onClick={(e) => e.target === e.currentTarget && setIsLogoutOpen(false)}

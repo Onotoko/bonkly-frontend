@@ -100,6 +100,7 @@
     flex-direction: column;
     position: relative;
     overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .home-ornament {
@@ -267,6 +268,22 @@
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
+
+/* Feed Media - Video */
+.feed-media video {
+    width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    background: #000;
+    display: block;
+}
+
+/* For square aspect ratio like images (optional) */
+.feed-media video.square {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
 
 /* Feed Body */
 .feed-body {
